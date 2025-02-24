@@ -46,7 +46,7 @@ class Game {
         };
 
         this.islands = [
-            { x: 200, y: 200, width: 300, height: 200 },
+            { x: 200, y: 400, width: 300, height: 200 },
             { x: 600, y: 400, width: 250, height: 150 }
         ];
 
@@ -63,7 +63,12 @@ class Game {
 
     setupControls() {
         window.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowUp' || e.key === 'w' || e.key === ' ') {
+            // Prevent spacebar from scrolling
+            if (e.code === 'Space') {
+                e.preventDefault();
+            }
+
+            if (e.key === 'ArrowUp' || e.key === 'w' || e.code === 'Space') {
                 this.moveState.up = true;
                 if (this.player.isGrounded) {
                     this.player.velocity.y = this.player.jumpForce;
@@ -82,7 +87,7 @@ class Game {
         });
 
         window.addEventListener('keyup', (e) => {
-            if (e.key === 'ArrowUp' || e.key === 'w') {
+            if (e.key === 'ArrowUp' || e.key === 'w' || e.code === 'Space') {
                 this.moveState.up = false;
             }
             if (e.key === 'ArrowDown' || e.key === 's') {
@@ -137,8 +142,9 @@ class Game {
         this.player.x += this.player.velocity.x;
         this.player.y += this.player.velocity.y;
 
-        // Check collisions with islands
-        this.player.isGrounded = false;
+        // Check if player is grounded
+        this.player.isGrounded = this.checkGrounded();
+
         for (const island of this.islands) {
             if (this.checkCollisionWithIsland(island)) {
                 // Determine which side of the island we hit
@@ -148,9 +154,9 @@ class Game {
                 const fromRight = oldX - 20 >= island.x + island.width;
 
                 if (fromTop && this.player.velocity.y > 0) {
-                    this.player.y = island.y - 20;
+                    this.player.y = island.y - 20; // Correct player position
                     this.player.velocity.y = 0;
-                    this.player.isGrounded = true;
+                    this.player.isGrounded = true; // Ensure grounded state
                 } else if (fromBottom && this.player.velocity.y < 0) {
                     this.player.y = island.y + island.height + 20;
                     this.player.velocity.y = 0;
@@ -164,7 +170,7 @@ class Game {
             }
         }
 
-        // Only apply ground check if player falls below initial ground level
+        // Prevent player from falling forever
         if (this.player.y > this.canvas.height * 1.5) {
             this.player.y = this.canvas.height / 2;
             this.player.x = this.canvas.width / 2;
@@ -173,6 +179,22 @@ class Game {
             this.player.isGrounded = true;
         }
     }
+
+    // Improved function to check if the player is standing on a platform
+    checkGrounded() {
+        for (const island of this.islands) {
+            if (
+                this.player.x + 20 > island.x &&
+                this.player.x - 20 < island.x + island.width &&
+                this.player.y + 21 >= island.y &&  // Slightly below the player
+                this.player.y + 21 <= island.y + 10  // Allow small variations
+            ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     checkCollisionWithIsland(island) {
         return this.player.x + 20 > island.x &&
