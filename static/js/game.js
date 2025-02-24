@@ -54,8 +54,12 @@ class Game {
 
     setupControls() {
         window.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowUp' || e.key === 'w') {
+            if (e.key === 'ArrowUp' || e.key === 'w' || e.key === ' ') {
                 this.moveState.up = true;
+                if (this.player.isGrounded) {
+                    this.player.velocity.y = this.player.jumpForce;
+                    this.player.isGrounded = false;
+                }
             }
             if (e.key === 'ArrowDown' || e.key === 's') {
                 this.moveState.down = true;
@@ -65,12 +69,6 @@ class Game {
             }
             if (e.key === 'ArrowRight' || e.key === 'd') {
                 this.moveState.right = true;
-            }
-            if (e.key === ' ') {
-                if (this.player.isGrounded) {
-                    this.player.velocity.y = this.player.jumpForce;
-                    this.player.isGrounded = false;
-                }
             }
         });
 
