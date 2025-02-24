@@ -1,3 +1,132 @@
+class CrystalManager {
+    constructor(game) {
+        this.game = game;
+        this.crystals = [];
+        this.lastSpawnTime = Date.now();
+        this.spawnInterval = 10000; // Spawn new crystals every 10 seconds
+        this.elements = ['fire', 'ice', 'nature', 'arcane', 'void'];
+    }
+
+    generateCrystal(x, y) {
+        return {
+            x,
+            y,
+            element: this.elements[Math.floor(Math.random() * this.elements.length)],
+            power: Math.floor(Math.random() * 3) + 1,
+            collected: false,
+            pulsePhase: 0
+        };
+    }
+
+    update() {
+        const currentTime = Date.now();
+        if (currentTime - this.lastSpawnTime > this.spawnInterval) {
+            this.spawnCrystals();
+            this.lastSpawnTime = currentTime;
+        }
+
+        // Update crystal animations
+        this.crystals.forEach(crystal => {
+            if (!crystal.collected) {
+                crystal.pulsePhase = (crystal.pulsePhase + 0.05) % (Math.PI * 2);
+            }
+        });
+
+        // Check for crystal collection
+        this.checkCollection();
+    }
+
+    spawnCrystals() {
+        // Clear old crystals
+        this.crystals = this.crystals.filter(crystal => !crystal.collected);
+
+        // Spawn new crystals on crystal platforms
+        this.game.islands.forEach(island => {
+            if (island.type === 'crystal' && this.crystals.length < 10) {
+                const crystalX = island.x + Math.random() * (island.width - 20);
+                const crystalY = island.y - 30; // Float above the platform
+                this.crystals.push(this.generateCrystal(crystalX, crystalY));
+            }
+        });
+    }
+
+    checkCollection() {
+        this.crystals.forEach(crystal => {
+            if (!crystal.collected) {
+                const dx = this.game.player.x - crystal.x;
+                const dy = this.game.player.y - crystal.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < 40) { // Collection radius
+                    crystal.collected = true;
+                    this.collectCrystal(crystal);
+                }
+            }
+        });
+    }
+
+    collectCrystal(crystal) {
+        // Add to inventory
+        this.game.player.inventory.addItem({
+            type: 'echo_crystal',
+            name: 'Echo Crystal',
+            element: crystal.element,
+            power: crystal.power,
+            quantity: 1
+        });
+
+        // Play collection sound
+        this.game.synth.triggerAttackRelease(`${crystal.element === 'void' ? 'C2' : 'C4'}`, "8n");
+    }
+
+    draw(ctx) {
+        this.crystals.forEach(crystal => {
+            if (!crystal.collected) {
+                const screenX = crystal.x - this.game.camera.x;
+                const screenY = crystal.y - this.game.camera.y;
+
+                // Draw crystal glow
+                const glowSize = 15 + Math.sin(crystal.pulsePhase) * 5;
+                const gradient = ctx.createRadialGradient(
+                    screenX, screenY, 0,
+                    screenX, screenY, glowSize
+                );
+
+                // Set gradient colors based on element
+                let colors;
+                switch(crystal.element) {
+                    case 'fire': colors = ['#ff8a00', '#ff0000']; break;
+                    case 'ice': colors = ['#00c6ff', '#0072ff']; break;
+                    case 'nature': colors = ['#00ff87', '#60efff']; break;
+                    case 'arcane': colors = ['#da22ff', '#9733ee']; break;
+                    case 'void': colors = ['#141e30', '#243b55']; break;
+                }
+
+                gradient.addColorStop(0, colors[0] + '88');
+                gradient.addColorStop(1, colors[1] + '00');
+
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(screenX, screenY, glowSize, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Draw crystal
+                ctx.fillStyle = colors[0];
+                ctx.strokeStyle = colors[1];
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(screenX, screenY - 10);
+                ctx.lineTo(screenX + 7, screenY);
+                ctx.lineTo(screenX, screenY + 10);
+                ctx.lineTo(screenX - 7, screenY);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+            }
+        });
+    }
+}
+
 class Game {
     constructor() {
         this.canvas = document.getElementById('gameCanvas');
@@ -7,7 +136,6 @@ class Game {
         this.canvas.width = this.canvas.offsetWidth;
         this.canvas.height = this.canvas.offsetHeight;
 
-        // Add camera offset tracking
         this.camera = {
             x: 0,
             y: 0,
@@ -26,7 +154,7 @@ class Game {
             gravity: 0.2,
             jumpForce: -8,
             isGrounded: false,
-            inventory: [],
+            inventory: new InventorySystem(this), // Initialize inventory here
             health: 100,
             mana: 100,
             level: 1,
@@ -45,7 +173,6 @@ class Game {
             right: false
         };
 
-        // Enhanced island layout
         this.islands = [
             // Main starting island
             { 
@@ -103,14 +230,14 @@ class Game {
         ];
 
 
-        // Initialize UI
+        this.crystalManager = new CrystalManager(this);
+
         this.ui = new GameUI(this);
 
         this.setupControls();
         this.setupAudio();
         this.gameLoop();
 
-        // Handle window resize
         window.addEventListener('resize', () => {
             this.canvas.width = this.canvas.offsetWidth;
             this.canvas.height = this.canvas.offsetHeight;
@@ -305,10 +432,12 @@ class Game {
                 this.ctx.strokeStyle = '#a6a6aa';
             }
             
+
             this.ctx.fillRect(screenX, screenY, island.width, island.height);
 
             // Add some detail to islands
             
+
             this.ctx.lineWidth = 2;
             this.ctx.strokeRect(screenX, screenY, island.width, island.height);
         });
@@ -340,7 +469,9 @@ class Game {
 
         this.updatePlayerMovement();
         this.updateCamera();  // Update camera position
+        this.crystalManager.update(); // Update crystal manager
         this.drawIslands();
+        this.crystalManager.draw(this.ctx); // Draw crystals
         this.drawPlayer();
         this.ui.updateUI(); //added this line
 
@@ -351,3 +482,27 @@ class Game {
 window.addEventListener('load', () => {
     const game = new Game();
 });
+
+// Placeholder for InventorySystem class (needs to be implemented separately)
+class InventorySystem {
+    constructor(game) {
+        this.game = game;
+        this.items = [];
+    }
+
+    addItem(item) {
+        this.items.push(item);
+        console.log("Item added:", item); // Simple logging for now
+    }
+}
+
+// Placeholder for GameUI class (needs to be implemented separately)
+class GameUI {
+    constructor(game) {
+        this.game = game;
+    }
+    updateUI() {
+        // Placeholder UI update logic
+        //  This would ideally update the on-screen elements with player info, inventory etc.
+    }
+}
