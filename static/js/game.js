@@ -10,7 +10,10 @@ class Game {
         this.player = {
             x: this.canvas.width / 2,
             y: this.canvas.height / 2,
-            speed: 5,
+            velocity: { x: 0, y: 0 },
+            maxSpeed: 5,
+            acceleration: 0.5,
+            friction: 0.85,
             inventory: [],
             health: 100,
             mana: 100,
@@ -23,10 +26,18 @@ class Game {
             class: 'Seeker'
         };
 
+        this.moveState = {
+            up: false,
+            down: false,
+            left: false,
+            right: false
+        };
+
         this.islands = [
             { x: 200, y: 200, width: 300, height: 200 },
             { x: 600, y: 400, width: 250, height: 150 }
         ];
+
         this.setupControls();
         this.setupAudio();
         this.gameLoop();
@@ -42,19 +53,86 @@ class Game {
         window.addEventListener('keydown', (e) => {
             switch(e.key) {
                 case 'ArrowUp':
-                    this.player.y -= this.player.speed;
+                case 'w':
+                    this.moveState.up = true;
                     break;
                 case 'ArrowDown':
-                    this.player.y += this.player.speed;
+                case 's':
+                    this.moveState.down = true;
                     break;
                 case 'ArrowLeft':
-                    this.player.x -= this.player.speed;
+                case 'a':
+                    this.moveState.left = true;
                     break;
                 case 'ArrowRight':
-                    this.player.x += this.player.speed;
+                case 'd':
+                    this.moveState.right = true;
                     break;
             }
         });
+
+        window.addEventListener('keyup', (e) => {
+            switch(e.key) {
+                case 'ArrowUp':
+                case 'w':
+                    this.moveState.up = false;
+                    break;
+                case 'ArrowDown':
+                case 's':
+                    this.moveState.down = false;
+                    break;
+                case 'ArrowLeft':
+                case 'a':
+                    this.moveState.left = false;
+                    break;
+                case 'ArrowRight':
+                case 'd':
+                    this.moveState.right = false;
+                    break;
+            }
+        });
+    }
+
+    updatePlayerMovement() {
+        // Calculate intended acceleration based on input
+        let accelX = 0;
+        let accelY = 0;
+
+        if (this.moveState.up) accelY -= this.player.acceleration;
+        if (this.moveState.down) accelY += this.player.acceleration;
+        if (this.moveState.left) accelX -= this.player.acceleration;
+        if (this.moveState.right) accelX += this.player.acceleration;
+
+        // Normalize diagonal movement
+        if (accelX !== 0 && accelY !== 0) {
+            const normalizer = 1 / Math.sqrt(2);
+            accelX *= normalizer;
+            accelY *= normalizer;
+        }
+
+        // Apply acceleration to velocity
+        this.player.velocity.x += accelX;
+        this.player.velocity.y += accelY;
+
+        // Apply friction
+        this.player.velocity.x *= this.player.friction;
+        this.player.velocity.y *= this.player.friction;
+
+        // Limit maximum speed
+        const speed = Math.sqrt(this.player.velocity.x ** 2 + this.player.velocity.y ** 2);
+        if (speed > this.player.maxSpeed) {
+            const scale = this.player.maxSpeed / speed;
+            this.player.velocity.x *= scale;
+            this.player.velocity.y *= scale;
+        }
+
+        // Update position
+        this.player.x += this.player.velocity.x;
+        this.player.y += this.player.velocity.y;
+
+        // Keep player within canvas bounds
+        this.player.x = Math.max(20, Math.min(this.canvas.width - 20, this.player.x));
+        this.player.y = Math.max(20, Math.min(this.canvas.height - 20, this.player.y));
     }
 
     setupAudio() {
@@ -105,6 +183,7 @@ class Game {
         this.ctx.fillStyle = '#1a202c';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
+        this.updatePlayerMovement();
         this.drawIslands();
         this.drawPlayer();
         this.checkCollisions();
