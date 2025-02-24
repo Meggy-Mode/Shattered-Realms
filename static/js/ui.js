@@ -21,24 +21,48 @@ class GameUI {
     updatePlayerStats() {
         const statsContainer = document.getElementById('playerStats');
         statsContainer.innerHTML = `
-            <div class="progress mb-2">
-                <div class="progress-bar bg-danger" 
-                     role="progressbar" 
-                     style="width: ${this.game.player.health}%" 
-                     aria-valuenow="${this.game.player.health}" 
-                     aria-valuemin="0" 
-                     aria-valuemax="100">
-                    HP: ${this.game.player.health}
+            <div class="card-text mb-3">
+                <h5 class="mb-2">Level ${this.game.player.level} ${this.game.player.class}</h5>
+                <div class="progress mb-2">
+                    <div class="progress-bar bg-success" 
+                         role="progressbar" 
+                         style="width: ${(this.game.player.experience / this.game.player.maxExperience) * 100}%" 
+                         aria-valuenow="${this.game.player.experience}" 
+                         aria-valuemin="0" 
+                         aria-valuemax="${this.game.player.maxExperience}">
+                        XP: ${this.game.player.experience}/${this.game.player.maxExperience}
+                    </div>
                 </div>
-            </div>
-            <div class="progress">
-                <div class="progress-bar bg-info" 
-                     role="progressbar" 
-                     style="width: ${this.game.player.mana}%" 
-                     aria-valuenow="${this.game.player.mana}" 
-                     aria-valuemin="0" 
-                     aria-valuemax="100">
-                    MP: ${this.game.player.mana}
+                <div class="progress mb-2">
+                    <div class="progress-bar bg-danger" 
+                         role="progressbar" 
+                         style="width: ${this.game.player.health}%" 
+                         aria-valuenow="${this.game.player.health}" 
+                         aria-valuemin="0" 
+                         aria-valuemax="100">
+                        HP: ${this.game.player.health}/100
+                    </div>
+                </div>
+                <div class="progress mb-3">
+                    <div class="progress-bar bg-info" 
+                         role="progressbar" 
+                         style="width: ${this.game.player.mana}%" 
+                         aria-valuenow="${this.game.player.mana}" 
+                         aria-valuemin="0" 
+                         aria-valuemax="100">
+                        MP: ${this.game.player.mana}/100
+                    </div>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <i class="fas fa-fist-raised"></i> STR: ${this.game.player.strength}
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-brain"></i> INT: ${this.game.player.intelligence}
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-running"></i> DEX: ${this.game.player.dexterity}
+                    </div>
                 </div>
             </div>
         `;
