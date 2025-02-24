@@ -64,7 +64,7 @@ export class GameUI {
 
         const statsHtml = `
             <div class="card-text mb-3">
-                <h5 class="mb-2">Level ${newStats.level} ${newStats.class}</h5>
+                <h5 class="mb-2">Level ${newStats.level}</h5>
                 <div class="progress mb-2">
                     <div class="progress-bar bg-success" 
                          role="progressbar" 
@@ -116,7 +116,7 @@ export class GameUI {
 
     updateQuestLog() {
         const questData = {
-            progress: 25 // Example progress value
+            progress: 0
         };
 
         if (!this.shouldUpdate('questLog', questData)) return;
