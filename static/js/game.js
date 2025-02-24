@@ -7,6 +7,15 @@ class Game {
         this.canvas.width = this.canvas.offsetWidth;
         this.canvas.height = this.canvas.offsetHeight;
 
+        // Add camera offset tracking
+        this.camera = {
+            x: 0,
+            y: 0,
+            targetX: 0,
+            targetY: 0,
+            smoothing: 0.1  // Camera smoothing factor
+        };
+
         this.player = {
             x: this.canvas.width / 2,
             y: this.canvas.height / 2,
@@ -176,23 +185,41 @@ class Game {
         this.synth = new Tone.Synth().toDestination();
     }
 
+    updateCamera() {
+        // Calculate target camera position (centered on player)
+        this.camera.targetX = this.player.x - this.canvas.width / 2;
+        this.camera.targetY = this.player.y - this.canvas.height / 2;
+
+        // Smooth camera movement
+        this.camera.x += (this.camera.targetX - this.camera.x) * this.camera.smoothing;
+        this.camera.y += (this.camera.targetY - this.camera.y) * this.camera.smoothing;
+    }
+
     drawIslands() {
         this.islands.forEach(island => {
+            // Apply camera offset to island position
+            const screenX = island.x - this.camera.x;
+            const screenY = island.y - this.camera.y;
+
             this.ctx.fillStyle = '#4a5568';
-            this.ctx.fillRect(island.x, island.y, island.width, island.height);
+            this.ctx.fillRect(screenX, screenY, island.width, island.height);
 
             // Add some detail to islands
             this.ctx.strokeStyle = '#718096';
             this.ctx.lineWidth = 2;
-            this.ctx.strokeRect(island.x, island.y, island.width, island.height);
+            this.ctx.strokeRect(screenX, screenY, island.width, island.height);
         });
     }
 
     drawPlayer() {
+        // Draw player at screen center with camera offset
+        const screenX = this.player.x - this.camera.x;
+        const screenY = this.player.y - this.camera.y;
+
         // Draw player circle
         this.ctx.fillStyle = '#48bb78';
         this.ctx.beginPath();
-        this.ctx.arc(this.player.x, this.player.y, 20, 0, Math.PI * 2);
+        this.ctx.arc(screenX, screenY, 20, 0, Math.PI * 2);
         this.ctx.fill();
 
         // Add a border to the player
@@ -209,6 +236,7 @@ class Game {
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
         this.updatePlayerMovement();
+        this.updateCamera();  // Update camera position
         this.drawIslands();
         this.drawPlayer();
 
