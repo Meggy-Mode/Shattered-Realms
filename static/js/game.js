@@ -54,50 +54,38 @@ class Game {
 
     setupControls() {
         window.addEventListener('keydown', (e) => {
-            switch(e.key) {
-                case 'ArrowUp':
-                case 'w':
-                    this.moveState.up = true;
-                    break;
-                case 'ArrowDown':
-                case 's':
-                    this.moveState.down = true;
-                    break;
-                case 'ArrowLeft':
-                case 'a':
-                    this.moveState.left = true;
-                    break;
-                case 'ArrowRight':
-                case 'd':
-                    this.moveState.right = true;
-                    break;
-                case ' ':
-                    if (this.player.isGrounded) {
-                        this.player.velocity.y = this.player.jumpForce;
-                        this.player.isGrounded = false;
-                    }
-                    break;
+            if (e.key === 'ArrowUp' || e.key === 'w') {
+                this.moveState.up = true;
+            }
+            if (e.key === 'ArrowDown' || e.key === 's') {
+                this.moveState.down = true;
+            }
+            if (e.key === 'ArrowLeft' || e.key === 'a') {
+                this.moveState.left = true;
+            }
+            if (e.key === 'ArrowRight' || e.key === 'd') {
+                this.moveState.right = true;
+            }
+            if (e.key === ' ') {
+                if (this.player.isGrounded) {
+                    this.player.velocity.y = this.player.jumpForce;
+                    this.player.isGrounded = false;
+                }
             }
         });
 
         window.addEventListener('keyup', (e) => {
-            switch(e.key) {
-                case 'ArrowUp':
-                case 'w':
-                    this.moveState.up = false;
-                    break;
-                case 'ArrowDown':
-                case 's':
-                    this.moveState.down = false;
-                    break;
-                case 'ArrowLeft':
-                case 'a':
-                    this.moveState.left = false;
-                    break;
-                case 'ArrowRight':
-                case 'd':
-                    this.moveState.right = false;
-                    break;
+            if (e.key === 'ArrowUp' || e.key === 'w') {
+                this.moveState.up = false;
+            }
+            if (e.key === 'ArrowDown' || e.key === 's') {
+                this.moveState.down = false;
+            }
+            if (e.key === 'ArrowLeft' || e.key === 'a') {
+                this.moveState.left = false;
+            }
+            if (e.key === 'ArrowRight' || e.key === 'd') {
+                this.moveState.right = false;
             }
         });
     }
@@ -126,7 +114,7 @@ class Game {
         }
 
         // Limit maximum horizontal speed
-        this.player.velocity.x = Math.max(-this.player.maxSpeed, 
+        this.player.velocity.x = Math.max(-this.player.maxSpeed,
             Math.min(this.player.maxSpeed, this.player.velocity.x));
 
         // Update position and check for collisions
