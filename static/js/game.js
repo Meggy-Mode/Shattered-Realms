@@ -395,10 +395,12 @@ class Game {
     }
 
     updateCamera() {
-        // Direct camera tracking - no smoothing for now
         this.camera.x = this.player.x - this.canvas.width / 2;
         this.camera.y = this.player.y - this.canvas.height / 2;
     }
+
+
+
 
     drawIslands() {
         this.islands.forEach(island => {
