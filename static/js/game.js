@@ -55,9 +55,11 @@ class CrystalManager {
             if (!crystal.collected) {
                 const dx = this.game.player.x - crystal.x;
                 const dy = this.game.player.y - crystal.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
+                // Remove sqrt and compare squared distances directly
+                const distanceSquared = dx * dx + dy * dy;
+                const collectionRadiusSquared = 40 * 40; // 1600
 
-                if (distance < 40) { // Collection radius
+                if (distanceSquared < collectionRadiusSquared) {
                     crystal.collected = true;
                     this.collectCrystal(crystal);
                 }
