@@ -232,11 +232,8 @@ class Game {
 
         this.crystalManager = new CrystalManager(this);
         this.ui = new GameUI(this);
-
-        this.frameRate = 60;
-        this.frameInterval = 1000 / this.frameRate;
         this.lastFrameTime = 0;
-
+        this.lastCrystalUpdate = 0; // Added to track crystal update timing
 
         this.setupControls();
         this.setupAudio();
@@ -438,14 +435,8 @@ class Game {
     }
 
     gameLoop(timestamp) {
-        // Control frame rate
-        if (timestamp - this.lastFrameTime < this.frameInterval) {
-            requestAnimationFrame((timestamp) => this.gameLoop(timestamp));
-            return;
-        }
-        this.lastFrameTime = timestamp;
-
-        // Clear with hardware acceleration hint
+        // Use requestAnimationFrame's built-in timing
+        // Remove frame rate limiting since rAF already optimizes for screen refresh
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
         // Use transform for background
@@ -457,17 +448,21 @@ class Game {
         // Batch movement updates
         this.updatePlayerMovement();
 
-        // Only update camera if significant movement occurred
-        const dx = this.camera.targetX - this.camera.x;
-        const dy = this.camera.targetY - this.camera.y;
-        if (Math.abs(dx) > 0.1 || Math.abs(dy) > 0.1) {
-            this.updateCamera();
-        }
+        // Update camera position directly without smoothing for responsive movement
+        this.camera.targetX = this.player.x - this.canvas.width / 2;
+        this.camera.targetY = this.player.y - this.canvas.height / 2;
 
-        // Update crystals less frequently
-        if (timestamp - this.camera.lastUpdate > 100) { // Update every 100ms
+        // Smooth camera movement using timestamp delta
+        const deltaTime = timestamp - (this.lastFrameTime || timestamp);
+        const smoothFactor = Math.min(1, deltaTime / 16.67); // 60 FPS base rate
+
+        this.camera.x += (this.camera.targetX - this.camera.x) * this.camera.smoothing * smoothFactor;
+        this.camera.y += (this.camera.targetY - this.camera.y) * this.camera.smoothing * smoothFactor;
+
+        // Update crystals on significant movement only
+        if (timestamp - (this.lastCrystalUpdate || 0) > 100) { // Update every 100ms
             this.crystalManager.update();
-            this.camera.lastUpdate = timestamp;
+            this.lastCrystalUpdate = timestamp;
         }
 
         // Use transform for all game objects
@@ -480,11 +475,8 @@ class Game {
 
         this.ctx.restore();
 
-        // Update UI less frequently
-        if (timestamp - this.ui.lastUpdate > 200) { // Update every 200ms
-            this.ui.updateUI();
-            this.ui.lastUpdate = timestamp;
-        }
+        // Update last frame time for delta calculations
+        this.lastFrameTime = timestamp;
 
         requestAnimationFrame((timestamp) => this.gameLoop(timestamp));
     }

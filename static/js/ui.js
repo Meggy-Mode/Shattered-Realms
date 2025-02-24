@@ -1,8 +1,6 @@
 export class GameUI {
     constructor(game) {
         this.game = game;
-        this.lastUpdate = 0;
-        this.updateInterval = 200; // Update every 200ms
         this.cachedValues = {};
         this.setupEventListeners();
         this.cacheElements();
@@ -24,21 +22,6 @@ export class GameUI {
         }
     }
 
-    updateUI() {
-        const now = Date.now();
-        if (now - this.lastUpdate < this.updateInterval) {
-            return; // Skip update if too soon
-        }
-        this.lastUpdate = now;
-
-        // Batch DOM updates
-        requestAnimationFrame(() => {
-            this.updatePlayerStats();
-            this.updateQuestLog();
-            this.updateFactionStatus();
-        });
-    }
-
     shouldUpdate(key, newValue) {
         if (JSON.stringify(this.cachedValues[key]) !== JSON.stringify(newValue)) {
             this.cachedValues[key] = newValue;
@@ -47,6 +30,7 @@ export class GameUI {
         return false;
     }
 
+    // Update methods now only run when explicitly called by game events
     updatePlayerStats() {
         const newStats = {
             level: this.game.player.level,
@@ -170,7 +154,6 @@ export class GameUI {
     }
 
     showNotification(message, type = 'info') {
-        // Reuse existing notification if possible
         let notification = document.querySelector('.game-notification');
         if (!notification) {
             notification = document.createElement('div');
@@ -180,7 +163,6 @@ export class GameUI {
         notification.innerHTML = message;
         notification.classList.remove('fade-out');
 
-        // Remove after animation
         setTimeout(() => {
             notification.classList.add('fade-out');
             setTimeout(() => notification.remove(), 300);
