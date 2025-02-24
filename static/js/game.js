@@ -449,27 +449,11 @@ class Game {
     }
 }
 
+//Import statements added here.  Paths may need adjustment depending on your project structure.
+import { InventorySystem } from './inventory.js';
+import { GameUI } from './ui.js';
+
+
 window.addEventListener('load', () => {
     const game = new Game();
 });
-
-class InventorySystem {
-    constructor(game) {
-        this.game = game;
-        this.items = [];
-    }
-
-    addItem(item) {
-        this.items.push(item);
-        console.log("Item added:", item); 
-    }
-}
-
-class GameUI {
-    constructor(game) {
-        this.game = game;
-    }
-    updateUI() {
-        
-    }
-}
