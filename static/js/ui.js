@@ -48,7 +48,7 @@ class GameUI {
                          aria-valuenow="${this.game.player.mana}" 
                          aria-valuemin="0" 
                          aria-valuemax="100">
-                        MP: ${this.game.player.mana}/100
+                        Mana: ${this.game.player.mana}/100
                     </div>
                 </div>
                 <div class="stats-grid">
