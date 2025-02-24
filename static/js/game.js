@@ -295,24 +295,6 @@ class Game {
             const screenX = island.x - this.camera.x;
             const screenY = island.y - this.camera.y;
 
-            // Draw base island shape
-            this.ctx.beginPath();
-            this.ctx.moveTo(screenX, screenY + island.height / 2);
-            this.ctx.lineTo(screenX + island.width, screenY + island.height / 2);
-            this.ctx.quadraticCurveTo(
-                screenX + island.width,
-                screenY + island.height,
-                screenX + island.width - 20,
-                screenY + island.height
-            );
-            this.ctx.lineTo(screenX + 20, screenY + island.height);
-            this.ctx.quadraticCurveTo(
-                screenX,
-                screenY + island.height,
-                screenX,
-                screenY + island.height / 2
-            );
-
             // Set island style based on type
             switch(island.type) {
                 case 'grass':
@@ -332,48 +314,10 @@ class Game {
                     this.ctx.strokeStyle = '#2d3748';
             }
 
-            this.ctx.fill();
-            this.ctx.stroke();
-
-            // Add surface details
-            this.drawIslandDetails(screenX, screenY, island);
+            // Draw rectangular island
+            this.ctx.fillRect(screenX, screenY, island.width, island.height);
+            this.ctx.strokeRect(screenX, screenY, island.width, island.height);
         });
-    }
-
-    drawIslandDetails(x, y, island) {
-        switch(island.type) {
-            case 'grass':
-                // Draw grass tufts
-                for(let i = 0; i < island.width; i += 20) {
-                    this.ctx.beginPath();
-                    this.ctx.moveTo(x + i, y + 2);
-                    this.ctx.lineTo(x + i + 5, y - 5);
-                    this.ctx.lineTo(x + i + 10, y + 2);
-                    this.ctx.strokeStyle = '#2d5a33';
-                    this.ctx.stroke();
-                }
-                break;
-            case 'stone':
-                // Draw rock patterns
-                for(let i = 0; i < island.width; i += 30) {
-                    this.ctx.beginPath();
-                    this.ctx.arc(x + i, y + 10, 5, 0, Math.PI * 2);
-                    this.ctx.fillStyle = '#5a5a5a';
-                    this.ctx.fill();
-                }
-                break;
-            case 'crystal':
-                // Draw crystal formations
-                for(let i = 0; i < island.width; i += 40) {
-                    this.ctx.beginPath();
-                    this.ctx.moveTo(x + i, y + 15);
-                    this.ctx.lineTo(x + i + 10, y - 5);
-                    this.ctx.lineTo(x + i + 20, y + 15);
-                    this.ctx.fillStyle = '#9f8fff';
-                    this.ctx.fill();
-                }
-                break;
-        }
     }
 
     drawPlayer() {
