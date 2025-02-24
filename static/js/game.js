@@ -141,7 +141,7 @@ class Game {
             y: 0,
             targetX: 0,
             targetY: 0,
-            smoothing: 0.1  // Camera smoothing factor
+            smoothing: 0.1
         };
 
         this.player = {
@@ -154,7 +154,7 @@ class Game {
             gravity: 0.2,
             jumpForce: -8,
             isGrounded: false,
-            inventory: new InventorySystem(this), // Initialize inventory here
+            inventory: new InventorySystem(this),
             health: 100,
             mana: 100,
             level: 1,
@@ -229,9 +229,7 @@ class Game {
             }
         ];
 
-
         this.crystalManager = new CrystalManager(this);
-
         this.ui = new GameUI(this);
 
         this.setupControls();
@@ -273,7 +271,6 @@ class Game {
         });
 
         window.addEventListener('keyup', (e) => {
-
             if (e.key === 'ArrowUp' || e.key === 'w') {
                 this.moveState.up = false;
             }
@@ -291,71 +288,58 @@ class Game {
 
     gliding(toggle) {
         if (toggle === 'on'){
-        this.player.gravity = 0.15
+            this.player.gravity = 0.15
         } else {
             this.player.gravity = 0.2
         }
     }
 
     updatePlayerMovement() {
-        // Apply gravity
         if (!this.player.isGrounded) {
             this.player.velocity.y += this.player.gravity;
         }
 
-        // Calculate intended acceleration based on input
         let accelX = 0;
         if (this.moveState.left) accelX -= this.player.acceleration;
         if (this.moveState.right) accelX += this.player.acceleration;
 
-        // Apply acceleration to horizontal velocity
         this.player.velocity.x += accelX;
 
-        // Apply friction when grounded
         if (this.player.isGrounded) {
             this.player.velocity.x *= this.player.friction;
-            this.player.maxSpeed = 8
-            this.gliding('off')
+            this.player.maxSpeed = 8;
+            this.gliding('off');
         } else {
-            // Apply air resistance
             this.player.velocity.x *= 0.90;
-            this.player.maxSpeed = 5
+            this.player.maxSpeed = 5;
         }
 
-        // Limit maximum horizontal speed
         this.player.velocity.x = Math.max(-this.player.maxSpeed,
             Math.min(this.player.maxSpeed, this.player.velocity.x));
-
-        // Update position and check for collisions
 
         this.updatePosition();
     }
 
-
     updatePosition() {
-        // Store old position for collision resolution
         const oldX = this.player.x;
         const oldY = this.player.y;
 
-        // Update position
         this.player.x += this.player.velocity.x;
         this.player.y += this.player.velocity.y;
 
-        // Check if player is grounded
         this.player.isGrounded = this.checkGrounded();
 
         for (const island of this.islands) {
             if (this.checkCollisionWithIsland(island)) {
-                // Determine which side of the island we hit
                 const fromTop = oldY + 20 <= island.y;
                 const fromBottom = oldY - 20 >= island.y + island.height;
                 const fromLeft = oldX + 20 <= island.x;
                 const fromRight = oldX - 20 >= island.x + island.width;
 
                 if (fromTop && this.player.velocity.y > 0) {
-                    this.player.y = island.y - 20; // Correct player position
+                    this.player.y = island.y - 20;
                     this.player.velocity.y = 0;
-                    this.player.isGrounded = true; // Ensure grounded state
+                    this.player.isGrounded = true;
                 } else if (fromBottom && this.player.velocity.y < 0) {
                     this.player.y = island.y + island.height + 20;
                     this.player.velocity.y = 0;
@@ -369,7 +353,6 @@ class Game {
             }
         }
 
-        // Prevent player from falling forever
         if (this.player.y > this.canvas.height * 1.5) {
             this.player.y = this.canvas.height / 2;
             this.player.x = this.canvas.width / 2;
@@ -379,21 +362,19 @@ class Game {
         }
     }
 
-    // Improved function to check if the player is standing on a platform
     checkGrounded() {
         for (const island of this.islands) {
             if (
                 this.player.x + 20 > island.x &&
                 this.player.x - 20 < island.x + island.width &&
-                this.player.y + 21 >= island.y &&  // Slightly below the player
-                this.player.y + 21 <= island.y + 10  // Allow small variations
+                this.player.y + 21 >= island.y &&
+                this.player.y + 21 <= island.y + 10
             ) {
                 return true;
             }
         }
         return false;
     }
-
 
     checkCollisionWithIsland(island) {
         return this.player.x + 20 > island.x &&
@@ -407,20 +388,18 @@ class Game {
     }
 
     updateCamera() {
-        // Calculate target camera position (centered on player)
         this.camera.targetX = this.player.x - this.canvas.width / 2;
         this.camera.targetY = this.player.y - this.canvas.height / 2;
 
-        // Smooth camera movement
         this.camera.x += (this.camera.targetX - this.camera.x) * this.camera.smoothing;
         this.camera.y += (this.camera.targetY - this.camera.y) * this.camera.smoothing;
     }
 
     drawIslands() {
         this.islands.forEach(island => {
-            // Apply camera offset to island position
             const screenX = island.x - this.camera.x;
             const screenY = island.y - this.camera.y;
+
             if (island.type === "stone"){
                 this.ctx.fillStyle = '#4a5568';
                 this.ctx.strokeStyle = '#718096';
@@ -431,30 +410,22 @@ class Game {
                 this.ctx.fillStyle = '#634f76';
                 this.ctx.strokeStyle = '#a6a6aa';
             }
-            
 
             this.ctx.fillRect(screenX, screenY, island.width, island.height);
-
-            // Add some detail to islands
-            
-
             this.ctx.lineWidth = 2;
             this.ctx.strokeRect(screenX, screenY, island.width, island.height);
         });
     }
 
     drawPlayer() {
-        // Draw player at screen center with camera offset
         const screenX = this.player.x - this.camera.x;
         const screenY = this.player.y - this.camera.y;
 
-        // Draw player circle
         this.ctx.fillStyle = '#48bb78';
         this.ctx.beginPath();
         this.ctx.arc(screenX, screenY, 20, 0, Math.PI * 2);
         this.ctx.fill();
 
-        // Add a border to the player
         this.ctx.strokeStyle = '#2f855a';
         this.ctx.lineWidth = 3;
         this.ctx.stroke();
@@ -463,17 +434,16 @@ class Game {
     gameLoop() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-        // Draw background
         this.ctx.fillStyle = '#1a202c';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
         this.updatePlayerMovement();
-        this.updateCamera();  // Update camera position
-        this.crystalManager.update(); // Update crystal manager
+        this.updateCamera();
+        this.crystalManager.update();
         this.drawIslands();
-        this.crystalManager.draw(this.ctx); // Draw crystals
+        this.crystalManager.draw(this.ctx);
         this.drawPlayer();
-        this.ui.updateUI(); //added this line
+        this.ui.updateUI();
 
         requestAnimationFrame(() => this.gameLoop());
     }
@@ -483,7 +453,6 @@ window.addEventListener('load', () => {
     const game = new Game();
 });
 
-// Placeholder for InventorySystem class (needs to be implemented separately)
 class InventorySystem {
     constructor(game) {
         this.game = game;
@@ -492,17 +461,15 @@ class InventorySystem {
 
     addItem(item) {
         this.items.push(item);
-        console.log("Item added:", item); // Simple logging for now
+        console.log("Item added:", item); 
     }
 }
 
-// Placeholder for GameUI class (needs to be implemented separately)
 class GameUI {
     constructor(game) {
         this.game = game;
     }
     updateUI() {
-        // Placeholder UI update logic
-        //  This would ideally update the on-screen elements with player info, inventory etc.
+        
     }
 }
