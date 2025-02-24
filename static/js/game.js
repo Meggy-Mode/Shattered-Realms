@@ -11,8 +11,8 @@ class CrystalManager {
         return {
             x,
             y,
-            element: this.elements[Math.floor(Math.random() * this.elements.length)],
-            power: Math.floor(Math.random() * 3) + 1,
+            element: 'void',
+            power: 'void',
             collected: false,
             pulsePhase: 0
         };
@@ -70,8 +70,8 @@ class CrystalManager {
         this.game.player.inventory.addItem({
             type: 'echo_crystal',
             name: 'Echo Crystal',
-            element: crystal.element,
-            power: crystal.power,
+            element: 'void',
+            power: 'void',
             quantity: 1
         });
 
@@ -94,7 +94,7 @@ class CrystalManager {
 
                 // Set gradient colors based on element
                 let colors;
-                switch(crystal.element) {
+                switch (crystal.element) {
                     case 'fire': colors = ['#ff8a00', '#ff0000']; break;
                     case 'ice': colors = ['#00c6ff', '#0072ff']; break;
                     case 'nature': colors = ['#00ff87', '#60efff']; break;
@@ -141,7 +141,8 @@ class Game {
             y: 0,
             targetX: 0,
             targetY: 0,
-            smoothing: 0.1
+            smoothing: 0.1,
+            lastUpdate: 0
         };
 
         this.player = {
@@ -175,7 +176,7 @@ class Game {
 
         this.islands = [
             // Main starting island
-            { 
+            {
                 x: this.canvas.width / 2 - 200,
                 y: this.canvas.height / 2 + 100,
                 width: 400,
@@ -183,14 +184,14 @@ class Game {
                 type: 'grass'
             },
             // Floating islands in different positions
-            { 
+            {
                 x: this.canvas.width / 2 - 500,
                 y: this.canvas.height / 2 - 100,
                 width: 250,
                 height: 60,
                 type: 'stone'
             },
-            { 
+            {
                 x: this.canvas.width / 2 + 300,
                 y: this.canvas.height / 2 - 150,
                 width: 300,
@@ -198,14 +199,14 @@ class Game {
                 type: 'grass'
             },
             // Higher elevation islands
-            { 
+            {
                 x: this.canvas.width / 2 - 200,
                 y: this.canvas.height / 2 - 250,
                 width: 180,
                 height: 50,
                 type: 'crystal'
             },
-            { 
+            {
                 x: this.canvas.width / 2 + 100,
                 y: this.canvas.height / 2 - 300,
                 width: 220,
@@ -213,14 +214,14 @@ class Game {
                 type: 'stone'
             },
             // Lower islands
-            { 
+            {
                 x: this.canvas.width / 2 - 400,
                 y: this.canvas.height / 2 + 200,
                 width: 150,
                 height: 45,
                 type: 'grass'
             },
-            { 
+            {
                 x: this.canvas.width / 2 + 450,
                 y: this.canvas.height / 2 + 150,
                 width: 280,
@@ -232,9 +233,14 @@ class Game {
         this.crystalManager = new CrystalManager(this);
         this.ui = new GameUI(this);
 
+        this.frameRate = 60;
+        this.frameInterval = 1000 / this.frameRate;
+        this.lastFrameTime = 0;
+
+
         this.setupControls();
         this.setupAudio();
-        this.gameLoop();
+        this.gameLoop(0);
 
         window.addEventListener('resize', () => {
             this.canvas.width = this.canvas.offsetWidth;
@@ -287,7 +293,7 @@ class Game {
     }
 
     gliding(toggle) {
-        if (toggle === 'on'){
+        if (toggle === 'on') {
             this.player.gravity = 0.15
         } else {
             this.player.gravity = 0.2
@@ -378,9 +384,9 @@ class Game {
 
     checkCollisionWithIsland(island) {
         return this.player.x + 20 > island.x &&
-               this.player.x - 20 < island.x + island.width &&
-               this.player.y + 20 > island.y &&
-               this.player.y - 20 < island.y + island.height;
+            this.player.x - 20 < island.x + island.width &&
+            this.player.y + 20 > island.y &&
+            this.player.y - 20 < island.y + island.height;
     }
 
     setupAudio() {
@@ -400,13 +406,13 @@ class Game {
             const screenX = island.x - this.camera.x;
             const screenY = island.y - this.camera.y;
 
-            if (island.type === "stone"){
+            if (island.type === "stone") {
                 this.ctx.fillStyle = '#4a5568';
                 this.ctx.strokeStyle = '#718096';
-            } else if (island.type === "grass"){
+            } else if (island.type === "grass") {
                 this.ctx.fillStyle = '#134d15';
                 this.ctx.strokeStyle = '#90aa90';
-            } else if (island.type === "crystal"){
+            } else if (island.type === "crystal") {
                 this.ctx.fillStyle = '#634f76';
                 this.ctx.strokeStyle = '#a6a6aa';
             }
@@ -431,21 +437,56 @@ class Game {
         this.ctx.stroke();
     }
 
-    gameLoop() {
+    gameLoop(timestamp) {
+        // Control frame rate
+        if (timestamp - this.lastFrameTime < this.frameInterval) {
+            requestAnimationFrame((timestamp) => this.gameLoop(timestamp));
+            return;
+        }
+        this.lastFrameTime = timestamp;
+
+        // Clear with hardware acceleration hint
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
+        // Use transform for background
+        this.ctx.save();
         this.ctx.fillStyle = '#1a202c';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        this.ctx.restore();
 
+        // Batch movement updates
         this.updatePlayerMovement();
-        this.updateCamera();
-        this.crystalManager.update();
+
+        // Only update camera if significant movement occurred
+        const dx = this.camera.targetX - this.camera.x;
+        const dy = this.camera.targetY - this.camera.y;
+        if (Math.abs(dx) > 0.1 || Math.abs(dy) > 0.1) {
+            this.updateCamera();
+        }
+
+        // Update crystals less frequently
+        if (timestamp - this.camera.lastUpdate > 100) { // Update every 100ms
+            this.crystalManager.update();
+            this.camera.lastUpdate = timestamp;
+        }
+
+        // Use transform for all game objects
+        this.ctx.save();
+        this.ctx.translate(-this.camera.x, -this.camera.y);
+
         this.drawIslands();
         this.crystalManager.draw(this.ctx);
         this.drawPlayer();
-        this.ui.updateUI();
 
-        requestAnimationFrame(() => this.gameLoop());
+        this.ctx.restore();
+
+        // Update UI less frequently
+        if (timestamp - this.ui.lastUpdate > 200) { // Update every 200ms
+            this.ui.updateUI();
+            this.ui.lastUpdate = timestamp;
+        }
+
+        requestAnimationFrame((timestamp) => this.gameLoop(timestamp));
     }
 }
 

@@ -1,130 +1,189 @@
 export class GameUI {
     constructor(game) {
         this.game = game;
+        this.lastUpdate = 0;
+        this.updateInterval = 200; // Update every 200ms
+        this.cachedValues = {};
         this.setupEventListeners();
+        this.cacheElements();
+    }
+
+    cacheElements() {
+        this.elements = {
+            playerStats: document.getElementById('playerStats'),
+            questLog: document.getElementById('questLog'),
+            factionStatus: document.getElementById('factionStatus')
+        };
     }
 
     setupEventListeners() {
-        document.getElementById('playerStats').addEventListener('click', () => {
-            this.toggleStatsPanel();
-        });
+        if (this.elements?.playerStats) {
+            this.elements.playerStats.addEventListener('click', () => {
+                this.toggleStatsPanel();
+            });
+        }
     }
 
     updateUI() {
-        this.updatePlayerStats();
-        this.updateQuestLog();
-        this.updateFactionStatus();
+        const now = Date.now();
+        if (now - this.lastUpdate < this.updateInterval) {
+            return; // Skip update if too soon
+        }
+        this.lastUpdate = now;
+
+        // Batch DOM updates
+        requestAnimationFrame(() => {
+            this.updatePlayerStats();
+            this.updateQuestLog();
+            this.updateFactionStatus();
+        });
+    }
+
+    shouldUpdate(key, newValue) {
+        if (JSON.stringify(this.cachedValues[key]) !== JSON.stringify(newValue)) {
+            this.cachedValues[key] = newValue;
+            return true;
+        }
+        return false;
     }
 
     updatePlayerStats() {
-        const statsContainer = document.getElementById('playerStats');
-        statsContainer.innerHTML = `
+        const newStats = {
+            level: this.game.player.level,
+            class: this.game.player.class,
+            experience: this.game.player.experience,
+            maxExperience: this.game.player.maxExperience,
+            health: this.game.player.health,
+            mana: this.game.player.mana,
+            strength: this.game.player.strength,
+            intelligence: this.game.player.intelligence,
+            dexterity: this.game.player.dexterity
+        };
+
+        if (!this.shouldUpdate('playerStats', newStats)) return;
+
+        const statsHtml = `
             <div class="card-text mb-3">
-                <h5 class="mb-2">Level ${this.game.player.level} ${this.game.player.class}</h5>
+                <h5 class="mb-2">Level ${newStats.level} ${newStats.class}</h5>
                 <div class="progress mb-2">
                     <div class="progress-bar bg-success" 
                          role="progressbar" 
-                         style="width: ${(this.game.player.experience / this.game.player.maxExperience) * 100}%" 
-                         aria-valuenow="${this.game.player.experience}" 
+                         style="width: ${(newStats.experience / newStats.maxExperience) * 100}%" 
+                         aria-valuenow="${newStats.experience}" 
                          aria-valuemin="0" 
-                         aria-valuemax="${this.game.player.maxExperience}">
-                        XP: ${this.game.player.experience}/${this.game.player.maxExperience}
+                         aria-valuemax="${newStats.maxExperience}">
+                        XP: ${newStats.experience}/${newStats.maxExperience}
                     </div>
                 </div>
                 <div class="progress mb-2">
                     <div class="progress-bar bg-danger" 
                          role="progressbar" 
-                         style="width: ${this.game.player.health}%" 
-                         aria-valuenow="${this.game.player.health}" 
+                         style="width: ${newStats.health}%" 
+                         aria-valuenow="${newStats.health}" 
                          aria-valuemin="0" 
                          aria-valuemax="100">
-                        HP: ${this.game.player.health}/100
+                        HP: ${newStats.health}/100
                     </div>
                 </div>
                 <div class="progress mb-3">
                     <div class="progress-bar bg-info" 
                          role="progressbar" 
-                         style="width: ${this.game.player.mana}%" 
-                         aria-valuenow="${this.game.player.mana}" 
+                         style="width: ${newStats.mana}%" 
+                         aria-valuenow="${newStats.mana}" 
                          aria-valuemin="0" 
                          aria-valuemax="100">
-                        Mana: ${this.game.player.mana}/100
+                        Mana: ${newStats.mana}/100
                     </div>
                 </div>
                 <div class="stats-grid">
                     <div class="stat-item">
-                        <i class="fas fa-fist-raised"></i> STR: ${this.game.player.strength}
+                        <i class="fas fa-fist-raised"></i> STR: ${newStats.strength}
                     </div>
                     <div class="stat-item">
-                        <i class="fas fa-brain"></i> INT: ${this.game.player.intelligence}
+                        <i class="fas fa-brain"></i> INT: ${newStats.intelligence}
                     </div>
                     <div class="stat-item">
-                        <i class="fas fa-running"></i> DEX: ${this.game.player.dexterity}
+                        <i class="fas fa-running"></i> DEX: ${newStats.dexterity}
                     </div>
                 </div>
             </div>
         `;
+
+        if (this.elements.playerStats) {
+            this.elements.playerStats.innerHTML = statsHtml;
+        }
     }
 
     updateQuestLog() {
-        const questLog = document.getElementById('questLog');
-        questLog.innerHTML = `
+        const questData = {
+            progress: 25 // Example progress value
+        };
+
+        if (!this.shouldUpdate('questLog', questData)) return;
+
+        const questHtml = `
             <div class="list-group">
                 <div class="list-group-item">
                     <h5 class="mb-1">Main Quest: The Echo Crystal</h5>
                     <small>Find the first Echo Crystal in the Ember Wastes</small>
                     <div class="progress mt-2" style="height: 5px;">
-                        <div class="progress-bar" role="progressbar" style="width: 25%"></div>
+                        <div class="progress-bar" role="progressbar" style="width: ${questData.progress}%"></div>
                     </div>
                 </div>
             </div>
         `;
+
+        if (this.elements.questLog) {
+            this.elements.questLog.innerHTML = questHtml;
+        }
     }
 
     updateFactionStatus() {
-        const factionStatus = document.getElementById('factionStatus');
-        factionStatus.innerHTML = `
+        const factionData = {
+            skyborn: 'Neutral',
+            shardwalkers: 'Cautious',
+            echoCultists: 'Hostile'
+        };
+
+        if (!this.shouldUpdate('factionStatus', factionData)) return;
+
+        const factionHtml = `
             <div class="list-group">
                 <div class="list-group-item d-flex justify-content-between align-items-center">
                     Skyborn Guardians
-                    <span class="badge bg-primary rounded-pill">Neutral</span>
+                    <span class="badge bg-primary rounded-pill">${factionData.skyborn}</span>
                 </div>
                 <div class="list-group-item d-flex justify-content-between align-items-center">
                     Shardwalkers
-                    <span class="badge bg-warning rounded-pill">Cautious</span>
+                    <span class="badge bg-warning rounded-pill">${factionData.shardwalkers}</span>
                 </div>
                 <div class="list-group-item d-flex justify-content-between align-items-center">
                     Echo Cultists
-                    <span class="badge bg-danger rounded-pill">Hostile</span>
+                    <span class="badge bg-danger rounded-pill">${factionData.echoCultists}</span>
                 </div>
             </div>
         `;
-    }
 
-    showCombatUI() {
-        const combat = document.createElement('div');
-        combat.className = 'combat-overlay';
-        combat.innerHTML = `
-            <div class="btn-group">
-                <button class="btn btn-danger" onclick="game.combat.playerAttack('melee')">
-                    Melee Attack
-                </button>
-                <button class="btn btn-primary" onclick="game.combat.playerAttack('magic')">
-                    Magic Attack
-                </button>
-                <button class="btn btn-success" onclick="game.combat.playerAttack('ranged')">
-                    Ranged Attack
-                </button>
-            </div>
-        `;
-        document.body.appendChild(combat);
+        if (this.elements.factionStatus) {
+            this.elements.factionStatus.innerHTML = factionHtml;
+        }
     }
 
     showNotification(message, type = 'info') {
-        const notification = document.createElement('div');
-        notification.className = `alert alert-${type} position-fixed top-0 end-0 m-3`;
+        // Reuse existing notification if possible
+        let notification = document.querySelector('.game-notification');
+        if (!notification) {
+            notification = document.createElement('div');
+            notification.className = `game-notification alert alert-${type} position-fixed top-0 end-0 m-3`;
+            document.body.appendChild(notification);
+        }
         notification.innerHTML = message;
-        document.body.appendChild(notification);
-        setTimeout(() => notification.remove(), 3000);
+        notification.classList.remove('fade-out');
+
+        // Remove after animation
+        setTimeout(() => {
+            notification.classList.add('fade-out');
+            setTimeout(() => notification.remove(), 300);
+        }, 2700);
     }
 }

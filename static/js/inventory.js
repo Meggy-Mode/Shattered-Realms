@@ -57,7 +57,7 @@ export class InventorySystem {
                 itemElement.innerHTML = `
                     <div class="d-flex align-items-center">
                         <i class="fas fa-gem me-2"></i>
-                        ${item.name} (${item.element})
+                        ${item.name}
                         <span class="badge bg-secondary ms-2">${item.power || 1}</span>
                     </div>
                     <span class="badge bg-primary rounded-pill">${item.quantity}</span>
