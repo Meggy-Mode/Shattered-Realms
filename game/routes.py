@@ -14,7 +14,8 @@ def save_game():
         player_position=data['playerPosition'],
         inventory=data['inventory'],
         quest_progress=data['questProgress'],
-        faction_standings=data['factionStandings']
+        faction_standings=data['factionStandings'],
+        echo_crystals=data.get('echoCrystals', [])  # Add echo crystals to save data
     )
     db.session.add(game_state)
     db.session.commit()
@@ -28,6 +29,7 @@ def load_game():
             'playerPosition': game_state.player_position,
             'inventory': game_state.inventory,
             'questProgress': game_state.quest_progress,
-            'factionStandings': game_state.faction_standings
+            'factionStandings': game_state.faction_standings,
+            'echoCrystals': game_state.echo_crystals  # Add echo crystals to load data
         })
     return jsonify({})

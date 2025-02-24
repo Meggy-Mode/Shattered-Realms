@@ -57,3 +57,40 @@
 .inventory-hidden {
     display: none;
 }
+
+/* Echo Crystal Styles */
+.echo-crystal {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.echo-crystal:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.crystal-fire {
+    background: linear-gradient(45deg, #ff8a00, #ff0000);
+    color: white;
+}
+
+.crystal-ice {
+    background: linear-gradient(45deg, #00c6ff, #0072ff);
+    color: white;
+}
+
+.crystal-nature {
+    background: linear-gradient(45deg, #00ff87, #60efff);
+    color: white;
+}
+
+.crystal-arcane {
+    background: linear-gradient(45deg, #da22ff, #9733ee);
+    color: white;
+}
+
+.crystal-void {
+    background: linear-gradient(45deg, #141e30, #243b55);
+    color: white;
+}
