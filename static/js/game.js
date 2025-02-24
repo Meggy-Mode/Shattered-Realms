@@ -45,9 +45,61 @@ class Game {
             right: false
         };
 
+        // Enhanced island layout
         this.islands = [
-            { x: 200, y: 400, width: 300, height: 200 },
-            { x: 600, y: 400, width: 250, height: 150 }
+            // Main starting island
+            { 
+                x: this.canvas.width / 2 - 200,
+                y: this.canvas.height / 2 + 100,
+                width: 400,
+                height: 80,
+                type: 'grass'
+            },
+            // Floating islands in different positions
+            { 
+                x: this.canvas.width / 2 - 500,
+                y: this.canvas.height / 2 - 100,
+                width: 250,
+                height: 60,
+                type: 'stone'
+            },
+            { 
+                x: this.canvas.width / 2 + 300,
+                y: this.canvas.height / 2 - 150,
+                width: 300,
+                height: 70,
+                type: 'grass'
+            },
+            // Higher elevation islands
+            { 
+                x: this.canvas.width / 2 - 200,
+                y: this.canvas.height / 2 - 250,
+                width: 180,
+                height: 50,
+                type: 'crystal'
+            },
+            { 
+                x: this.canvas.width / 2 + 100,
+                y: this.canvas.height / 2 - 300,
+                width: 220,
+                height: 55,
+                type: 'stone'
+            },
+            // Lower islands
+            { 
+                x: this.canvas.width / 2 - 400,
+                y: this.canvas.height / 2 + 200,
+                width: 150,
+                height: 45,
+                type: 'grass'
+            },
+            { 
+                x: this.canvas.width / 2 + 450,
+                y: this.canvas.height / 2 + 150,
+                width: 280,
+                height: 65,
+                type: 'crystal'
+            }
         ];
 
         // Initialize UI
@@ -152,6 +204,7 @@ class Game {
     }
 
 
+
     updatePosition() {
         // Store old position for collision resolution
         const oldX = this.player.x;
@@ -242,14 +295,85 @@ class Game {
             const screenX = island.x - this.camera.x;
             const screenY = island.y - this.camera.y;
 
-            this.ctx.fillStyle = '#4a5568';
-            this.ctx.fillRect(screenX, screenY, island.width, island.height);
+            // Draw base island shape
+            this.ctx.beginPath();
+            this.ctx.moveTo(screenX, screenY + island.height / 2);
+            this.ctx.lineTo(screenX + island.width, screenY + island.height / 2);
+            this.ctx.quadraticCurveTo(
+                screenX + island.width,
+                screenY + island.height,
+                screenX + island.width - 20,
+                screenY + island.height
+            );
+            this.ctx.lineTo(screenX + 20, screenY + island.height);
+            this.ctx.quadraticCurveTo(
+                screenX,
+                screenY + island.height,
+                screenX,
+                screenY + island.height / 2
+            );
 
-            // Add some detail to islands
-            this.ctx.strokeStyle = '#718096';
-            this.ctx.lineWidth = 2;
-            this.ctx.strokeRect(screenX, screenY, island.width, island.height);
+            // Set island style based on type
+            switch(island.type) {
+                case 'grass':
+                    this.ctx.fillStyle = '#4a9553';
+                    this.ctx.strokeStyle = '#2d5a33';
+                    break;
+                case 'stone':
+                    this.ctx.fillStyle = '#717171';
+                    this.ctx.strokeStyle = '#4a4a4a';
+                    break;
+                case 'crystal':
+                    this.ctx.fillStyle = '#7b68ee';
+                    this.ctx.strokeStyle = '#483d8b';
+                    break;
+                default:
+                    this.ctx.fillStyle = '#4a5568';
+                    this.ctx.strokeStyle = '#2d3748';
+            }
+
+            this.ctx.fill();
+            this.ctx.stroke();
+
+            // Add surface details
+            this.drawIslandDetails(screenX, screenY, island);
         });
+    }
+
+    drawIslandDetails(x, y, island) {
+        switch(island.type) {
+            case 'grass':
+                // Draw grass tufts
+                for(let i = 0; i < island.width; i += 20) {
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(x + i, y + 2);
+                    this.ctx.lineTo(x + i + 5, y - 5);
+                    this.ctx.lineTo(x + i + 10, y + 2);
+                    this.ctx.strokeStyle = '#2d5a33';
+                    this.ctx.stroke();
+                }
+                break;
+            case 'stone':
+                // Draw rock patterns
+                for(let i = 0; i < island.width; i += 30) {
+                    this.ctx.beginPath();
+                    this.ctx.arc(x + i, y + 10, 5, 0, Math.PI * 2);
+                    this.ctx.fillStyle = '#5a5a5a';
+                    this.ctx.fill();
+                }
+                break;
+            case 'crystal':
+                // Draw crystal formations
+                for(let i = 0; i < island.width; i += 40) {
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(x + i, y + 15);
+                    this.ctx.lineTo(x + i + 10, y - 5);
+                    this.ctx.lineTo(x + i + 20, y + 15);
+                    this.ctx.fillStyle = '#9f8fff';
+                    this.ctx.fill();
+                }
+                break;
+        }
     }
 
     drawPlayer() {

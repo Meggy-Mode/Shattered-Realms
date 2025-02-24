@@ -86,16 +86,16 @@ class GameUI {
         factionStatus.innerHTML = `
             <div class="list-group">
                 <div class="list-group-item d-flex justify-content-between align-items-center">
-                    Skyborn Guardians
+                    The Dominion of Aetheris
                     <span class="badge bg-primary rounded-pill">Neutral</span>
                 </div>
                 <div class="list-group-item d-flex justify-content-between align-items-center">
-                    Shardwalkers
-                    <span class="badge bg-warning rounded-pill">Cautious</span>
+                    Ashen Requiem
+                    <span class="badge bg-primary rounded-pill">Neutral</span>
                 </div>
                 <div class="list-group-item d-flex justify-content-between align-items-center">
-                    Echo Cultists
-                    <span class="badge bg-danger rounded-pill">Hostile</span>
+                    Abyssborne Archivists
+                    <span class="badge bg-primary rounded-pill">Neutral</span>
                 </div>
             </div>
         `;
