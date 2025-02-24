@@ -1,4 +1,4 @@
-class InventorySystem {
+export class InventorySystem {
     constructor(game) {
         this.game = game;
         this.items = [];

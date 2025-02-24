@@ -1,4 +1,4 @@
-class GameUI {
+export class GameUI {
     constructor(game) {
         this.game = game;
         this.setupEventListeners();
