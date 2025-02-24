@@ -3,32 +3,12 @@ export class InventorySystem {
         this.game = game;
         this.items = [];
         this.maxSize = 20;
-        this.visible = false;
         this.setupUI();
-        this.setupControls();
     }
 
     setupUI() {
         this.container = document.getElementById('inventory');
-        this.container.parentElement.parentElement.classList.add('inventory-hidden');
         this.render();
-    }
-
-    setupControls() {
-        window.addEventListener('keydown', (e) => {
-            if (e.key.toLowerCase() === 'e') {
-                this.toggleVisibility();
-            }
-        });
-    }
-
-    toggleVisibility() {
-        this.visible = !this.visible;
-        if (this.visible) {
-            this.container.parentElement.parentElement.classList.remove('inventory-hidden');
-        } else {
-            this.container.parentElement.parentElement.classList.add('inventory-hidden');
-        }
     }
 
     addItem(item) {
@@ -38,7 +18,7 @@ export class InventorySystem {
 
         // Special handling for echo crystals
         if (item.type === 'echo_crystal') {
-            const existingCrystal = this.items.find(i => 
+            const existingCrystal = this.items.find(i =>
                 i.type === 'echo_crystal' && i.element === item.element);
             if (existingCrystal) {
                 existingCrystal.quantity += item.quantity || 1;
@@ -100,13 +80,15 @@ export class InventorySystem {
         const item = this.items[index];
         if (item.type === 'echo_crystal') {
             // Echo crystal effects
-            const success = this.game.player.useEchoCrystal(item);
-            if (success) {
-                item.quantity--;
-                if (item.quantity <= 0) {
-                    this.removeItem(index);
-                } else {
-                    this.render();
+            if (this.game.player.useEchoCrystal) {
+                const success = this.game.player.useEchoCrystal(item);
+                if (success) {
+                    item.quantity--;
+                    if (item.quantity <= 0) {
+                        this.removeItem(index);
+                    } else {
+                        this.render();
+                    }
                 }
             }
         } else if (item.type === 'consumable') {
