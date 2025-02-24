@@ -2,7 +2,6 @@ class GameUI {
     constructor(game) {
         this.game = game;
         this.setupEventListeners();
-        this.updateUI();
     }
 
     setupEventListeners() {
@@ -15,7 +14,6 @@ class GameUI {
         this.updatePlayerStats();
         this.updateQuestLog();
         this.updateFactionStatus();
-        requestAnimationFrame(() => this.updateUI());
     }
 
     updatePlayerStats() {
