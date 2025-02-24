@@ -3,12 +3,32 @@ class InventorySystem {
         this.game = game;
         this.items = [];
         this.maxSize = 20;
+        this.visible = false;
         this.setupUI();
+        this.setupControls();
     }
 
     setupUI() {
         this.container = document.getElementById('inventory');
+        this.container.parentElement.parentElement.classList.add('inventory-hidden');
         this.render();
+    }
+
+    setupControls() {
+        window.addEventListener('keydown', (e) => {
+            if (e.key.toLowerCase() === 'e') {
+                this.toggleVisibility();
+            }
+        });
+    }
+
+    toggleVisibility() {
+        this.visible = !this.visible;
+        if (this.visible) {
+            this.container.parentElement.parentElement.classList.remove('inventory-hidden');
+        } else {
+            this.container.parentElement.parentElement.classList.add('inventory-hidden');
+        }
     }
 
     addItem(item) {
@@ -31,10 +51,10 @@ class InventorySystem {
 
     render() {
         this.container.innerHTML = '';
-        
+
         const itemList = document.createElement('ul');
         itemList.className = 'list-group';
-        
+
         this.items.forEach((item, index) => {
             const itemElement = document.createElement('li');
             itemElement.className = 'list-group-item d-flex justify-content-between align-items-center';
@@ -45,7 +65,7 @@ class InventorySystem {
             itemElement.onclick = () => this.useItem(index);
             itemList.appendChild(itemElement);
         });
-        
+
         this.container.appendChild(itemList);
     }
 
@@ -57,7 +77,7 @@ class InventorySystem {
             } else if (item.effect === 'mana') {
                 this.game.player.mana += item.value;
             }
-            
+
             item.quantity--;
             if (item.quantity <= 0) {
                 this.removeItem(index);
