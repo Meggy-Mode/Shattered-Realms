@@ -141,7 +141,7 @@ class Game {
             y: 0,
             targetX: 0,
             targetY: 0,
-            smoothing: 0.1,
+            smoothing: 0.05, // Reduced from 0.1 to 0.05 for smoother movement
             lastUpdate: 0
         };
 
@@ -435,8 +435,6 @@ class Game {
     }
 
     gameLoop(timestamp) {
-        // Use requestAnimationFrame's built-in timing
-        // Remove frame rate limiting since rAF already optimizes for screen refresh
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
         // Use transform for background
@@ -448,26 +446,30 @@ class Game {
         // Batch movement updates
         this.updatePlayerMovement();
 
-        // Update camera position directly without smoothing for responsive movement
+        // Update camera position smoothly
         this.camera.targetX = this.player.x - this.canvas.width / 2;
         this.camera.targetY = this.player.y - this.canvas.height / 2;
 
-        // Smooth camera movement using timestamp delta
-        const deltaTime = timestamp - (this.lastFrameTime || timestamp);
-        const smoothFactor = Math.min(1, deltaTime / 16.67); // 60 FPS base rate
+        // Calculate a more stable delta time with a maximum value to prevent jumps
+        const deltaTime = Math.min(timestamp - (this.lastFrameTime || timestamp), 32); // Cap at ~30 FPS worth of movement
+        const smoothFactor = deltaTime / 32; // Normalize to a 0-1 range
 
-        this.camera.x += (this.camera.targetX - this.camera.x) * this.camera.smoothing * smoothFactor;
-        this.camera.y += (this.camera.targetY - this.camera.y) * this.camera.smoothing * smoothFactor;
+        // Apply smoother camera movement with dampening
+        const dx = this.camera.targetX - this.camera.x;
+        const dy = this.camera.targetY - this.camera.y;
+
+        this.camera.x += dx * this.camera.smoothing * smoothFactor;
+        this.camera.y += dy * this.camera.smoothing * smoothFactor;
 
         // Update crystals on significant movement only
-        if (timestamp - (this.lastCrystalUpdate || 0) > 100) { // Update every 100ms
+        if (timestamp - (this.lastCrystalUpdate || 0) > 100) {
             this.crystalManager.update();
             this.lastCrystalUpdate = timestamp;
         }
 
         // Use transform for all game objects
         this.ctx.save();
-        this.ctx.translate(-this.camera.x, -this.camera.y);
+        this.ctx.translate(-Math.round(this.camera.x), -Math.round(this.camera.y)); // Round for pixel-perfect rendering
 
         this.drawIslands();
         this.crystalManager.draw(this.ctx);
