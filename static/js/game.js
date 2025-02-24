@@ -45,10 +45,63 @@ class Game {
             right: false
         };
 
+        // Enhanced island layout
         this.islands = [
-            { x: 200, y: 400, width: 300, height: 200 },
-            { x: 600, y: 400, width: 250, height: 150 }
+            // Main starting island
+            { 
+                x: this.canvas.width / 2 - 200,
+                y: this.canvas.height / 2 + 100,
+                width: 400,
+                height: 80,
+                type: 'grass'
+            },
+            // Floating islands in different positions
+            { 
+                x: this.canvas.width / 2 - 500,
+                y: this.canvas.height / 2 - 100,
+                width: 250,
+                height: 60,
+                type: 'stone'
+            },
+            { 
+                x: this.canvas.width / 2 + 300,
+                y: this.canvas.height / 2 - 150,
+                width: 300,
+                height: 70,
+                type: 'grass'
+            },
+            // Higher elevation islands
+            { 
+                x: this.canvas.width / 2 - 200,
+                y: this.canvas.height / 2 - 250,
+                width: 180,
+                height: 50,
+                type: 'crystal'
+            },
+            { 
+                x: this.canvas.width / 2 + 100,
+                y: this.canvas.height / 2 - 300,
+                width: 220,
+                height: 55,
+                type: 'stone'
+            },
+            // Lower islands
+            { 
+                x: this.canvas.width / 2 - 400,
+                y: this.canvas.height / 2 + 200,
+                width: 150,
+                height: 45,
+                type: 'grass'
+            },
+            { 
+                x: this.canvas.width / 2 + 450,
+                y: this.canvas.height / 2 + 150,
+                width: 280,
+                height: 65,
+                type: 'crystal'
+            }
         ];
+
 
         // Initialize UI
         this.ui = new GameUI(this);
@@ -241,12 +294,21 @@ class Game {
             // Apply camera offset to island position
             const screenX = island.x - this.camera.x;
             const screenY = island.y - this.camera.y;
-
-            this.ctx.fillStyle = '#4a5568';
+            if (island.type === "stone"){
+                this.ctx.fillStyle = '#4a5568';
+                this.ctx.strokeStyle = '#718096';
+            } else if (island.type === "grass"){
+                this.ctx.fillStyle = '#134d15';
+                this.ctx.strokeStyle = '#90aa90';
+            } else if (island.type === "crystal"){
+                this.ctx.fillStyle = '#634f76';
+                this.ctx.strokeStyle = '#a6a6aa';
+            }
+            
             this.ctx.fillRect(screenX, screenY, island.width, island.height);
 
             // Add some detail to islands
-            this.ctx.strokeStyle = '#718096';
+            
             this.ctx.lineWidth = 2;
             this.ctx.strokeRect(screenX, screenY, island.width, island.height);
         });
