@@ -2,7 +2,19 @@ class Game {
     constructor() {
         this.canvas = document.getElementById('gameCanvas');
         this.ctx = this.canvas.getContext('2d');
-
+        
+        this.Display = {
+            Hp: document.getElementById('hp'),
+            Mana: document.getElementById('mana'),
+            Lvl: document.getElementById('lvl'),
+            Str: document.getElementById('str'),
+            Int: document.getElementById('int'),
+            Dex: document.getElementById('dex')
+        };
+        
+        
+        
+        
         // Set proper canvas dimensions
         this.canvas.width = this.canvas.offsetWidth;
         this.canvas.height = this.canvas.offsetHeight;
@@ -20,7 +32,7 @@ class Game {
             x: this.canvas.width / 2,
             y: this.canvas.height / 2,
             velocity: { x: 0, y: 0 },
-            maxSpeed: 5,
+            maxSpeed: 8,
             acceleration: 0.5,
             friction: 0.85,
             gravity: 0.2,
@@ -63,12 +75,15 @@ class Game {
 
     setupControls() {
         window.addEventListener('keydown', (e) => {
-            // Prevent spacebar from scrolling
             if (e.code === 'Space') {
                 e.preventDefault();
             }
-
-            if (e.key === 'ArrowUp' || e.key === 'w' || e.code === 'Space') {
+            if (e.key === ' ') {
+                if (!this.player.isGrounded) {
+                    this.gliding('on')
+                }
+            }
+            if (e.key === 'ArrowUp' || e.key === 'w') {
                 this.moveState.up = true;
                 if (this.player.isGrounded) {
                     this.player.velocity.y = this.player.jumpForce;
@@ -87,7 +102,8 @@ class Game {
         });
 
         window.addEventListener('keyup', (e) => {
-            if (e.key === 'ArrowUp' || e.key === 'w' || e.code === 'Space') {
+           
+            if (e.key === 'ArrowUp' || e.key === 'w') {
                 this.moveState.up = false;
             }
             if (e.key === 'ArrowDown' || e.key === 's') {
@@ -101,7 +117,15 @@ class Game {
             }
         });
     }
-
+    
+    gliding(toggle) {
+        if (toggle === 'on'){
+        this.player.gravity = 0.15
+        } else {
+            this.player.gravity = 0.2
+        }
+    }
+    
     updatePlayerMovement() {
         // Apply gravity
         if (!this.player.isGrounded) {
@@ -110,19 +134,21 @@ class Game {
 
         // Calculate intended acceleration based on input
         let accelX = 0;
-
         if (this.moveState.left) accelX -= this.player.acceleration;
         if (this.moveState.right) accelX += this.player.acceleration;
 
         // Apply acceleration to horizontal velocity
         this.player.velocity.x += accelX;
 
-        // Apply friction only when grounded
+        // Apply friction when grounded
         if (this.player.isGrounded) {
             this.player.velocity.x *= this.player.friction;
+            this.player.maxSpeed = 8
+            this.gliding('off')
         } else {
-            // Less friction in air
-            this.player.velocity.x *= 0.95;
+            // Apply air resistance
+            this.player.velocity.x *= 0.90;
+            this.player.maxSpeed = 5
         }
 
         // Limit maximum horizontal speed
@@ -130,8 +156,10 @@ class Game {
             Math.min(this.player.maxSpeed, this.player.velocity.x));
 
         // Update position and check for collisions
+        
         this.updatePosition();
     }
+
 
     updatePosition() {
         // Store old position for collision resolution
@@ -256,6 +284,14 @@ class Game {
         // Draw background
         this.ctx.fillStyle = '#1a202c';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+        // Update UI elements
+        this.Display.Hp.innerText = `HP: ${this.player.health}`;
+        this.Display.Mana.innerText = `MP: ${this.player.mana}`;
+        this.Display.Lvl.innerText = `Level: ${this.player.level}`;
+        this.Display.Str.innerText = `STR: ${this.player.strength}`;
+        this.Display.Int.innerText = `INT: ${this.player.intelligence}`;
+        this.Display.Dex.innerText = `DEX: ${this.player.dexterity}`;
 
         this.updatePlayerMovement();
         this.updateCamera();  // Update camera position
