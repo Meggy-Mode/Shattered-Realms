@@ -2,19 +2,7 @@ class Game {
     constructor() {
         this.canvas = document.getElementById('gameCanvas');
         this.ctx = this.canvas.getContext('2d');
-        
-        this.Display = {
-            Hp: document.getElementById('hp'),
-            Mana: document.getElementById('mana'),
-            Lvl: document.getElementById('lvl'),
-            Str: document.getElementById('str'),
-            Int: document.getElementById('int'),
-            Dex: document.getElementById('dex')
-        };
-        
-        
-        
-        
+
         // Set proper canvas dimensions
         this.canvas.width = this.canvas.offsetWidth;
         this.canvas.height = this.canvas.offsetHeight;
@@ -62,6 +50,9 @@ class Game {
             { x: 600, y: 400, width: 250, height: 150 }
         ];
 
+        // Initialize UI
+        this.ui = new GameUI(this);
+
         this.setupControls();
         this.setupAudio();
         this.gameLoop();
@@ -102,7 +93,7 @@ class Game {
         });
 
         window.addEventListener('keyup', (e) => {
-           
+
             if (e.key === 'ArrowUp' || e.key === 'w') {
                 this.moveState.up = false;
             }
@@ -117,7 +108,7 @@ class Game {
             }
         });
     }
-    
+
     gliding(toggle) {
         if (toggle === 'on'){
         this.player.gravity = 0.15
@@ -125,7 +116,7 @@ class Game {
             this.player.gravity = 0.2
         }
     }
-    
+
     updatePlayerMovement() {
         // Apply gravity
         if (!this.player.isGrounded) {
@@ -156,7 +147,7 @@ class Game {
             Math.min(this.player.maxSpeed, this.player.velocity.x));
 
         // Update position and check for collisions
-        
+
         this.updatePosition();
     }
 
@@ -285,18 +276,11 @@ class Game {
         this.ctx.fillStyle = '#1a202c';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-        // Update UI elements
-        this.Display.Hp.innerText = `HP: ${this.player.health}`;
-        this.Display.Mana.innerText = `MP: ${this.player.mana}`;
-        this.Display.Lvl.innerText = `Level: ${this.player.level}`;
-        this.Display.Str.innerText = `STR: ${this.player.strength}`;
-        this.Display.Int.innerText = `INT: ${this.player.intelligence}`;
-        this.Display.Dex.innerText = `DEX: ${this.player.dexterity}`;
-
         this.updatePlayerMovement();
         this.updateCamera();  // Update camera position
         this.drawIslands();
         this.drawPlayer();
+        this.ui.updateUI(); //added this line
 
         requestAnimationFrame(() => this.gameLoop());
     }
