@@ -4,7 +4,6 @@ export class GameUI {
         this.cachedValues = {};
         this.setupEventListeners();
         this.cacheElements();
-        this.renderInitialUI(); // Add initial render call
     }
 
     cacheElements() {
@@ -21,13 +20,6 @@ export class GameUI {
                 this.toggleStatsPanel();
             });
         }
-    }
-
-    // New method to render all UI elements initially
-    renderInitialUI() {
-        this.updatePlayerStats();
-        this.updateQuestLog();
-        this.updateFactionStatus();
     }
 
     shouldUpdate(key, newValue) {

@@ -55,11 +55,9 @@ class CrystalManager {
             if (!crystal.collected) {
                 const dx = this.game.player.x - crystal.x;
                 const dy = this.game.player.y - crystal.y;
-                // Remove sqrt and compare squared distances directly
-                const distanceSquared = dx * dx + dy * dy;
-                const collectionRadiusSquared = 40 * 40; // 1600
+                const distance = Math.sqrt(dx * dx + dy * dy);
 
-                if (distanceSquared < collectionRadiusSquared) {
+                if (distance < 40) { // Collection radius
                     crystal.collected = true;
                     this.collectCrystal(crystal);
                 }
@@ -143,6 +141,7 @@ class Game {
             y: 0,
             targetX: 0,
             targetY: 0,
+            smoothing: 0.1,
             lastUpdate: 0
         };
 
@@ -395,12 +394,12 @@ class Game {
     }
 
     updateCamera() {
-        this.camera.x = this.player.x - this.canvas.width / 2;
-        this.camera.y = this.player.y - this.canvas.height / 2;
+        this.camera.targetX = this.player.x - this.canvas.width / 2;
+        this.camera.targetY = this.player.y - this.canvas.height / 2;
+
+        this.camera.x += (this.camera.targetX - this.camera.x) * this.camera.smoothing;
+        this.camera.y += (this.camera.targetY - this.camera.y) * this.camera.smoothing;
     }
-
-
-
 
     drawIslands() {
         this.islands.forEach(island => {
@@ -458,8 +457,12 @@ class Game {
         // Batch movement updates
         this.updatePlayerMovement();
 
-        // Update camera every frame
-        this.updateCamera();
+        // Only update camera if significant movement occurred
+        const dx = this.camera.targetX - this.camera.x;
+        const dy = this.camera.targetY - this.camera.y;
+        if (Math.abs(dx) > 0.1 || Math.abs(dy) > 0.1) {
+            this.updateCamera();
+        }
 
         // Update crystals less frequently
         if (timestamp - this.camera.lastUpdate > 100) { // Update every 100ms
@@ -469,11 +472,19 @@ class Game {
 
         // Use transform for all game objects
         this.ctx.save();
-        this.ctx.translate(-Math.floor(this.camera.x), -Math.floor(this.camera.y));
+        this.ctx.translate(-this.camera.x, -this.camera.y);
+
         this.drawIslands();
         this.crystalManager.draw(this.ctx);
         this.drawPlayer();
+
         this.ctx.restore();
+
+        // Update UI less frequently
+        if (timestamp - this.ui.lastUpdate > 200) { // Update every 200ms
+            this.ui.updateUI();
+            this.ui.lastUpdate = timestamp;
+        }
 
         requestAnimationFrame((timestamp) => this.gameLoop(timestamp));
     }
