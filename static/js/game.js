@@ -164,14 +164,14 @@ class Game {
             }
         }
 
-        // Keep player within canvas bounds
-        this.player.x = Math.max(20, Math.min(this.canvas.width - 20, this.player.x));
-        if (this.player.y > this.canvas.height - 20) {
-            this.player.y = this.canvas.height - 20;
+        // Only apply ground check if player falls below initial ground level
+        if (this.player.y > this.canvas.height * 1.5) {
+            this.player.y = this.canvas.height / 2;
+            this.player.x = this.canvas.width / 2;
+            this.player.velocity.x = 0;
             this.player.velocity.y = 0;
             this.player.isGrounded = true;
         }
-        this.player.y = Math.max(20, Math.min(this.canvas.height - 20, this.player.y));
     }
 
     checkCollisionWithIsland(island) {
