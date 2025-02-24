@@ -57,12 +57,13 @@ class Game {
             switch(e.key) {
                 case 'ArrowUp':
                 case 'w':
+                    this.moveState.up = true;
+                    break;
                 case ' ':
                     if (this.player.isGrounded) {
                         this.player.velocity.y = this.player.jumpForce;
                         this.player.isGrounded = false;
                     }
-                    this.moveState.up = true;
                     break;
                 case 'ArrowDown':
                 case 's':
@@ -83,7 +84,6 @@ class Game {
             switch(e.key) {
                 case 'ArrowUp':
                 case 'w':
-                case ' ':
                     this.moveState.up = false;
                     break;
                 case 'ArrowDown':
