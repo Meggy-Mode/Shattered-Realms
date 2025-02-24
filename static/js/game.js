@@ -141,7 +141,6 @@ class Game {
             y: 0,
             targetX: 0,
             targetY: 0,
-            smoothing: 0.1,
             lastUpdate: 0
         };
 
@@ -394,17 +393,9 @@ class Game {
     }
 
     updateCamera() {
-        // Calculate target position considering player dimensions
-        const playerRadius = 20;
-        this.camera.targetX = this.player.x - this.canvas.width / 2;
-        this.camera.targetY = this.player.y - this.canvas.height / 2;
-
-        // Use lower smoothing value for more precise movement
-        this.camera.smoothing = 0.08;
-
-        // Apply smoothed movement
-        this.camera.x = this.camera.x + (this.camera.targetX - this.camera.x) * this.camera.smoothing;
-        this.camera.y = this.camera.y + (this.camera.targetY - this.camera.y) * this.camera.smoothing;
+        // Direct camera tracking - no smoothing for now
+        this.camera.x = this.player.x - this.canvas.width / 2;
+        this.camera.y = this.player.y - this.canvas.height / 2;
     }
 
     drawIslands() {
@@ -474,7 +465,7 @@ class Game {
 
         // Use transform for all game objects
         this.ctx.save();
-        this.ctx.translate(-Math.round(this.camera.x), -Math.round(this.camera.y));
+        this.ctx.translate(-Math.floor(this.camera.x), -Math.floor(this.camera.y));
         this.drawIslands();
         this.crystalManager.draw(this.ctx);
         this.drawPlayer();
