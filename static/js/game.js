@@ -20,11 +20,11 @@ class Game {
             x: this.canvas.width / 2,
             y: this.canvas.height / 2,
             velocity: { x: 0, y: 0 },
-            maxSpeed: 8,
+            maxSpeed: 5,
             acceleration: 0.5,
-            friction: 0.85,
-            gravity: 0.2,
-            jumpForce: -8,
+            friction: 0.95,
+            gravity: 0.35,
+            jumpForce: -10,
             isGrounded: false,
             inventory: [],
             health: 100,
@@ -165,7 +165,7 @@ class Game {
         if (toggle === 'on'){
         this.player.gravity = 0.15
         } else {
-            this.player.gravity = 0.2
+            this.player.gravity = 0.35
         }
     }
 
@@ -183,22 +183,12 @@ class Game {
         // Apply acceleration to horizontal velocity
         this.player.velocity.x += accelX;
 
-        // Apply friction when grounded
-        if (this.player.isGrounded) {
-            this.player.velocity.x *= this.player.friction;
-            this.player.maxSpeed = 8
-            this.gliding('off')
-        } else {
-            // Apply air resistance
-            this.player.velocity.x *= 0.90;
-            this.player.maxSpeed = 5
-        }
+        // Apply friction
+        this.player.velocity.x *= this.player.friction;
 
         // Limit maximum horizontal speed
         this.player.velocity.x = Math.max(-this.player.maxSpeed,
             Math.min(this.player.maxSpeed, this.player.velocity.x));
-
-        // Update position and check for collisions
 
         this.updatePosition();
     }
