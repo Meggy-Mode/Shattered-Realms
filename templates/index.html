@@ -1,0 +1,37 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container-fluid game-container">
+    <div class="row">
+        <div class="col-md-9">
+            <canvas id="gameCanvas"></canvas>
+        </div>
+        <div class="col-md-3">
+            <div class="card mb-3">
+                <div class="card-header">Character</div>
+                <div class="card-body">
+                    <div id="playerStats"></div>
+                </div>
+            </div>
+            <div class="card mb-3">
+                <div class="card-header">Inventory</div>
+                <div class="card-body">
+                    <div id="inventory"></div>
+                </div>
+            </div>
+            <div class="card mb-3">
+                <div class="card-header">Quests</div>
+                <div class="card-body">
+                    <div id="questLog"></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">Faction Standing</div>
+                <div class="card-body">
+                    <div id="factionStatus"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
