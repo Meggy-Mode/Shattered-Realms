@@ -394,11 +394,17 @@ class Game {
     }
 
     updateCamera() {
+        // Calculate target position considering player dimensions
+        const playerRadius = 20;
         this.camera.targetX = this.player.x - this.canvas.width / 2;
         this.camera.targetY = this.player.y - this.canvas.height / 2;
 
-        this.camera.x += (this.camera.targetX - this.camera.x) * this.camera.smoothing;
-        this.camera.y += (this.camera.targetY - this.camera.y) * this.camera.smoothing;
+        // Use lower smoothing value for more precise movement
+        this.camera.smoothing = 0.08;
+
+        // Apply smoothed movement
+        this.camera.x = this.camera.x + (this.camera.targetX - this.camera.x) * this.camera.smoothing;
+        this.camera.y = this.camera.y + (this.camera.targetY - this.camera.y) * this.camera.smoothing;
     }
 
     drawIslands() {
@@ -457,14 +463,8 @@ class Game {
         // Batch movement updates
         this.updatePlayerMovement();
 
-        // Update camera position every frame for smooth tracking
-        this.camera.targetX = this.player.x - this.canvas.width / 2;
-        this.camera.targetY = this.player.y - this.canvas.height / 2;
-
-        // Increase smoothing for smoother camera movement
-        this.camera.smoothing = 0.15;
-        this.camera.x += (this.camera.targetX - this.camera.x) * this.camera.smoothing;
-        this.camera.y += (this.camera.targetY - this.camera.y) * this.camera.smoothing;
+        // Update camera every frame
+        this.updateCamera();
 
         // Update crystals less frequently
         if (timestamp - this.camera.lastUpdate > 100) { // Update every 100ms
@@ -474,7 +474,7 @@ class Game {
 
         // Use transform for all game objects
         this.ctx.save();
-        this.ctx.translate(-this.camera.x, -this.camera.y);
+        this.ctx.translate(-Math.round(this.camera.x), -Math.round(this.camera.y));
         this.drawIslands();
         this.crystalManager.draw(this.ctx);
         this.drawPlayer();
