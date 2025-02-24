@@ -457,12 +457,14 @@ class Game {
         // Batch movement updates
         this.updatePlayerMovement();
 
-        // Only update camera if significant movement occurred
-        const dx = this.camera.targetX - this.camera.x;
-        const dy = this.camera.targetY - this.camera.y;
-        if (Math.abs(dx) > 0.1 || Math.abs(dy) > 0.1) {
-            this.updateCamera();
-        }
+        // Update camera position every frame for smooth tracking
+        this.camera.targetX = this.player.x - this.canvas.width / 2;
+        this.camera.targetY = this.player.y - this.canvas.height / 2;
+
+        // Increase smoothing for smoother camera movement
+        this.camera.smoothing = 0.15;
+        this.camera.x += (this.camera.targetX - this.camera.x) * this.camera.smoothing;
+        this.camera.y += (this.camera.targetY - this.camera.y) * this.camera.smoothing;
 
         // Update crystals less frequently
         if (timestamp - this.camera.lastUpdate > 100) { // Update every 100ms
@@ -473,18 +475,10 @@ class Game {
         // Use transform for all game objects
         this.ctx.save();
         this.ctx.translate(-this.camera.x, -this.camera.y);
-
         this.drawIslands();
         this.crystalManager.draw(this.ctx);
         this.drawPlayer();
-
         this.ctx.restore();
-
-        // Update UI less frequently
-        if (timestamp - this.ui.lastUpdate > 200) { // Update every 200ms
-            this.ui.updateUI();
-            this.ui.lastUpdate = timestamp;
-        }
 
         requestAnimationFrame((timestamp) => this.gameLoop(timestamp));
     }
