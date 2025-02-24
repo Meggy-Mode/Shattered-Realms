@@ -59,12 +59,6 @@ class Game {
                 case 'w':
                     this.moveState.up = true;
                     break;
-                case ' ':
-                    if (this.player.isGrounded) {
-                        this.player.velocity.y = this.player.jumpForce;
-                        this.player.isGrounded = false;
-                    }
-                    break;
                 case 'ArrowDown':
                 case 's':
                     this.moveState.down = true;
@@ -76,6 +70,12 @@ class Game {
                 case 'ArrowRight':
                 case 'd':
                     this.moveState.right = true;
+                    break;
+                case ' ':
+                    if (this.player.isGrounded) {
+                        this.player.velocity.y = this.player.jumpForce;
+                        this.player.isGrounded = false;
+                    }
                     break;
             }
         });
