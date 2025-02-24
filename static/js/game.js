@@ -14,6 +14,9 @@ class Game {
             maxSpeed: 5,
             acceleration: 0.5,
             friction: 0.85,
+            gravity: 0.2,
+            jumpForce: -8,
+            isGrounded: false,
             inventory: [],
             health: 100,
             mana: 100,
@@ -54,6 +57,11 @@ class Game {
             switch(e.key) {
                 case 'ArrowUp':
                 case 'w':
+                case ' ':
+                    if (this.player.isGrounded) {
+                        this.player.velocity.y = this.player.jumpForce;
+                        this.player.isGrounded = false;
+                    }
                     this.moveState.up = true;
                     break;
                 case 'ArrowDown':
@@ -75,6 +83,7 @@ class Game {
             switch(e.key) {
                 case 'ArrowUp':
                 case 'w':
+                case ' ':
                     this.moveState.up = false;
                     break;
                 case 'ArrowDown':
@@ -94,45 +103,87 @@ class Game {
     }
 
     updatePlayerMovement() {
+        // Apply gravity
+        if (!this.player.isGrounded) {
+            this.player.velocity.y += this.player.gravity;
+        }
+
         // Calculate intended acceleration based on input
         let accelX = 0;
-        let accelY = 0;
 
-        if (this.moveState.up) accelY -= this.player.acceleration;
-        if (this.moveState.down) accelY += this.player.acceleration;
         if (this.moveState.left) accelX -= this.player.acceleration;
         if (this.moveState.right) accelX += this.player.acceleration;
 
-        // Normalize diagonal movement
-        if (accelX !== 0 && accelY !== 0) {
-            const normalizer = 1 / Math.sqrt(2);
-            accelX *= normalizer;
-            accelY *= normalizer;
-        }
-
-        // Apply acceleration to velocity
+        // Apply acceleration to horizontal velocity
         this.player.velocity.x += accelX;
-        this.player.velocity.y += accelY;
 
-        // Apply friction
-        this.player.velocity.x *= this.player.friction;
-        this.player.velocity.y *= this.player.friction;
-
-        // Limit maximum speed
-        const speed = Math.sqrt(this.player.velocity.x ** 2 + this.player.velocity.y ** 2);
-        if (speed > this.player.maxSpeed) {
-            const scale = this.player.maxSpeed / speed;
-            this.player.velocity.x *= scale;
-            this.player.velocity.y *= scale;
+        // Apply friction only when grounded
+        if (this.player.isGrounded) {
+            this.player.velocity.x *= this.player.friction;
+        } else {
+            // Less friction in air
+            this.player.velocity.x *= 0.95;
         }
+
+        // Limit maximum horizontal speed
+        this.player.velocity.x = Math.max(-this.player.maxSpeed, 
+            Math.min(this.player.maxSpeed, this.player.velocity.x));
+
+        // Update position and check for collisions
+        this.updatePosition();
+    }
+
+    updatePosition() {
+        // Store old position for collision resolution
+        const oldX = this.player.x;
+        const oldY = this.player.y;
 
         // Update position
         this.player.x += this.player.velocity.x;
         this.player.y += this.player.velocity.y;
 
+        // Check collisions with islands
+        this.player.isGrounded = false;
+        for (const island of this.islands) {
+            if (this.checkCollisionWithIsland(island)) {
+                // Determine which side of the island we hit
+                const fromTop = oldY + 20 <= island.y;
+                const fromBottom = oldY - 20 >= island.y + island.height;
+                const fromLeft = oldX + 20 <= island.x;
+                const fromRight = oldX - 20 >= island.x + island.width;
+
+                if (fromTop && this.player.velocity.y > 0) {
+                    this.player.y = island.y - 20;
+                    this.player.velocity.y = 0;
+                    this.player.isGrounded = true;
+                } else if (fromBottom && this.player.velocity.y < 0) {
+                    this.player.y = island.y + island.height + 20;
+                    this.player.velocity.y = 0;
+                } else if (fromLeft && this.player.velocity.x > 0) {
+                    this.player.x = island.x - 20;
+                    this.player.velocity.x = 0;
+                } else if (fromRight && this.player.velocity.x < 0) {
+                    this.player.x = island.x + island.width + 20;
+                    this.player.velocity.x = 0;
+                }
+            }
+        }
+
         // Keep player within canvas bounds
         this.player.x = Math.max(20, Math.min(this.canvas.width - 20, this.player.x));
+        if (this.player.y > this.canvas.height - 20) {
+            this.player.y = this.canvas.height - 20;
+            this.player.velocity.y = 0;
+            this.player.isGrounded = true;
+        }
         this.player.y = Math.max(20, Math.min(this.canvas.height - 20, this.player.y));
+    }
+
+    checkCollisionWithIsland(island) {
+        return this.player.x + 20 > island.x &&
+               this.player.x - 20 < island.x + island.width &&
+               this.player.y + 20 > island.y &&
+               this.player.y - 20 < island.y + island.height;
     }
 
     setupAudio() {
@@ -164,18 +215,6 @@ class Game {
         this.ctx.stroke();
     }
 
-    checkCollisions() {
-        this.islands.forEach(island => {
-            if (this.player.x > island.x && 
-                this.player.x < island.x + island.width &&
-                this.player.y > island.y && 
-                this.player.y < island.y + island.height) {
-                return true;
-            }
-        });
-        return false;
-    }
-
     gameLoop() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
@@ -186,7 +225,6 @@ class Game {
         this.updatePlayerMovement();
         this.drawIslands();
         this.drawPlayer();
-        this.checkCollisions();
 
         requestAnimationFrame(() => this.gameLoop());
     }
