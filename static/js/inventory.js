@@ -124,7 +124,7 @@ export class InventorySystem {
         // Special handling for echo crystals
         if (item.type === 'echo_crystal') {
             console.log('Processing echo crystal:', item);
-            const existingCrystal = this.items.find(i => 
+            const existingCrystal = this.items.find(i =>
                 i.type === 'echo_crystal' &&
                 i.element === item.element &&
                 i.power === item.power
@@ -167,11 +167,11 @@ export class InventorySystem {
         }
 
         this.container.innerHTML = '';
-        const itemList = document.createElement('ul');
+        const itemList = document.createElement('div');
         itemList.className = 'list-group inventory-list mb-3';
 
         if (this.items.length === 0) {
-            const emptyMessage = document.createElement('li');
+            const emptyMessage = document.createElement('div');
             emptyMessage.className = 'list-group-item text-center text-muted';
             emptyMessage.textContent = 'Inventory is empty';
             itemList.appendChild(emptyMessage);
@@ -184,19 +184,19 @@ export class InventorySystem {
             });
 
             sortedItems.forEach((item) => {
-                const itemElement = document.createElement('li');
-                itemElement.className = 'list-group-item d-flex justify-content-between align-items-center';
-
                 if (item.type === 'echo_crystal') {
-                    itemElement.classList.add('echo-crystal');
+                    const itemElement = document.createElement('div');
+                    itemElement.className = 'echo-crystal';
                     itemElement.classList.add(`crystal-${item.element}`);
                     itemElement.innerHTML = `
-                        <div class="d-flex align-items-center">
+                        <div class="d-flex align-items-center flex-grow-1">
                             <i class="fas fa-gem me-2"></i>
-                            ${item.name}
-                            <span class="badge bg-secondary ms-2">Power: ${item.power}</span>
+                            <div class="d-flex flex-column">
+                                <span>${item.name}</span>
+                                <small class="text-muted">Power: ${item.power}</small>
+                            </div>
+                            <span class="badge bg-primary rounded-pill ms-auto">×${item.quantity}</span>
                         </div>
-                        <span class="badge bg-primary rounded-pill">×${item.quantity}</span>
                     `;
 
                     // Add click handler for crystals
@@ -204,17 +204,9 @@ export class InventorySystem {
                         console.log('Crystal clicked:', item);
                         this.showCrystalModal(item);
                     };
-                } else {
-                    itemElement.innerHTML = `
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-flask me-2"></i>
-                            ${item.name}
-                        </div>
-                        <span class="badge bg-primary rounded-pill">×${item.quantity}</span>
-                    `;
-                }
 
-                itemList.appendChild(itemElement);
+                    itemList.appendChild(itemElement);
+                }
             });
         }
 
