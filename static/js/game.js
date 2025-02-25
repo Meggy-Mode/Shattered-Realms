@@ -10,8 +10,8 @@ class CrystalManager {
             2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
             3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
             4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-            5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 
-            6, 6, 6, 6, 6, 6, 6, 6, 6, 
+            5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
+            6, 6, 6, 6, 6, 6, 6, 6, 6,
             7, 7, 7, 7, 7, 7, 7, 7,
             8, 8, 8, 8, 8, 8, 8, 8,
             9, 9, 9, 9, 9, 9, 9, 9,
@@ -45,7 +45,7 @@ class CrystalManager {
         this.crystals.forEach(crystal => {
             if (!crystal.collected) {
                 crystal.pulsePhase = (crystal.pulsePhase + 0.05) % (Math.PI * 2);
-                
+
             }
         });
 
@@ -66,8 +66,8 @@ class CrystalManager {
                     const crystalX = island.x + Math.random() * (island.width - 20);
                     const crystalY = island.y - 30; // Float above the platform
                     this.crystals.push(this.generateCrystal(crystalX, crystalY));
-                    
-                    
+
+
                 }
             });
         }
@@ -193,22 +193,12 @@ class CrystalManager {
                     case 'void': colors = ['#141e30', '#243b55']; break;
                 }
 
-                // Make higher power crystals more vibrant
-                const alpha = 0.5 + (crystal.power / 15) * 0.5;
-                gradient.addColorStop(0, colors[0] + Math.floor(alpha * 255).toString(16).padStart(2, '0'));
+                gradient.addColorStop(0, colors[0] + '88');
                 gradient.addColorStop(1, colors[1] + '00');
 
                 ctx.fillStyle = gradient;
                 ctx.beginPath();
-                let glowScale = 1 + (crystal.power / 15) * 2;
-
-                // Special effect for maximum power crystals
-                if (crystal.power >= 15) {
-                    glowScale = 3;
-                    glowSize = 30;
-                }
-
-                ctx.arc(screenX, screenY, glowSize * glowScale, 0, Math.PI * 2);
+                ctx.arc(screenX, screenY, glowSize, 0, Math.PI * 2);
                 ctx.fill();
 
                 // Draw crystal
