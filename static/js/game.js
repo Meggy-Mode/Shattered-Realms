@@ -136,13 +136,26 @@ class Game {
         this.canvas.width = this.canvas.offsetWidth;
         this.canvas.height = this.canvas.offsetHeight;
 
-        this.initializeGameState();
-        this.initializeGameWorld();
-        this.setupGameSystems();
-        this.setupEventHandlers();
+        // Initialize islands as empty array to prevent "not iterable" errors
+        this.islands = [];
 
-        // Start the game loop
-        this.gameLoop(0);
+        this.initializeGameState();
+
+        // Initialize game asynchronously
+        this.initializeGame();
+    }
+
+    async initializeGame() {
+        try {
+            await this.initializeGameWorld();
+            this.setupGameSystems();
+            this.setupEventHandlers();
+            // Start the game loop only after initialization is complete
+            this.gameLoop(0);
+        } catch (error) {
+            console.error('Failed to initialize game:', error);
+            this.ui.showNotification('Failed to initialize game', 'error');
+        }
     }
 
     async loadIslands() {
@@ -471,6 +484,6 @@ import { InventorySystem } from './inventory.js';
 import { GameUI } from './ui.js';
 
 
-window.addEventListener('load', () => {
+window.addEventListener('load', async () => {
     const game = new Game();
 });
