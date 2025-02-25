@@ -141,7 +141,7 @@ class Game {
             y: 0,
             targetX: 0,
             targetY: 0,
-            smoothing: 0.05, // Reduced from 0.1 to 0.05 for smoother movement
+            smoothing: 0.1, // Reduced from 0.1 to 0.05 for smoother movement
             lastUpdate: 0
         };
 
@@ -394,8 +394,8 @@ class Game {
         this.camera.targetX = this.player.x - this.canvas.width / 2;
         this.camera.targetY = this.player.y - this.canvas.height / 2;
 
-        this.camera.x += (this.camera.targetX - this.camera.x) * this.camera.smoothing;
-        this.camera.y += (this.camera.targetY - this.camera.y) * this.camera.smoothing;
+        //this.camera.x += (this.camera.targetX - this.camera.x) * this.camera.smoothing;
+        //this.camera.y += (this.camera.targetY - this.camera.y) * this.camera.smoothing;
     }
 
     drawIslands() {
