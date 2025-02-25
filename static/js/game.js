@@ -137,15 +137,34 @@ class Game {
         this.canvas.height = this.canvas.offsetHeight;
 
         this.initializeGameState();
-        // Make constructor async to handle island loading
-        (async () => {
-            await this.initializeGameWorld();
-            this.setupGameSystems();
-            this.setupEventHandlers();
-            // Start the game loop
-            this.gameLoop(0);
-        })();
+        this.initializeGameWorld();
+        this.setupGameSystems();
+        this.setupEventHandlers();
+
+        // Start the game loop
+        this.gameLoop(0);
     }
+
+    async loadIslands() {
+        try {
+            const response = await fetch('/static/data/islands.json');
+            if (!response.ok) {
+                throw new Error('Failed to load islands data');
+            }
+            const data = await response.json();
+            this.islands = data.islands.map(island => ({
+                ...island,
+                // Adjust coordinates relative to canvas center
+                x: island.x + this.canvas.width / 2,
+                y: island.y + this.canvas.height / 2
+            }));
+        } catch (error) {
+            console.error('Error loading islands:', error);
+            this.islands = []; // Initialize empty array instead of hardcoding fallback
+            this.ui.showNotification('Error loading game world', 'error');
+        }
+    }
+
 
     initializeGameState() {
         this.camera = {
@@ -188,29 +207,6 @@ class Game {
 
     async initializeGameWorld() {
         await this.loadIslands();
-    }
-
-    async loadIslands() {
-        try {
-            const response = await fetch('/static/data/islands.json');
-            const data = await response.json();
-            this.islands = data.islands.map(island => ({
-                ...island,
-                // Adjust coordinates relative to canvas center
-                x: island.x + this.canvas.width / 2,
-                y: island.y + this.canvas.height / 2
-            }));
-        } catch (error) {
-            console.error('Error loading islands:', error);
-            // Fallback to default island if loading fails
-            this.islands = [{
-                x: this.canvas.width / 2 - 200,
-                y: this.canvas.height / 2 + 100,
-                width: 400,
-                height: 80,
-                type: 'grass'
-            }];
-        }
     }
 
     setupGameSystems() {
