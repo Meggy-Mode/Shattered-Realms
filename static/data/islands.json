@@ -27,7 +27,7 @@
       "height": 70,
       "type": "grass",
       "texture": "default",
-      "passThrough": false,
+      "passThrough": true,
       "description": "Right upper grass island"
     },
     {

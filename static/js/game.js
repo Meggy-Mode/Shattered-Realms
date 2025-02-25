@@ -3,8 +3,23 @@ class CrystalManager {
         this.game = game;
         this.crystals = [];
         this.lastSpawnTime = Date.now();
-        this.spawnInterval = 1000; 
+        this.spawnInterval = 1000;
         this.elements = ['fire', 'ice', 'nature', 'arcane', 'void'];
+        this.chance = [
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+            3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+            4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+            5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 
+            6, 6, 6, 6, 6, 6, 6, 6, 6, 
+            7, 7, 7, 7, 7, 7, 7, 7,
+            8, 8, 8, 8, 8, 8, 8, 8,
+            9, 9, 9, 9, 9, 9, 9, 9,
+            10, 10, 10, 10,
+            15
+        ];
+
+
         this.isCollecting = false;
     }
 
@@ -13,7 +28,7 @@ class CrystalManager {
             x,
             y,
             element: this.elements[Math.floor(Math.random() * this.elements.length)],
-            power: Math.floor(Math.random() * 10) + 1,
+            power: this.chance[Math.floor(Math.random() * this.chance.length)],
             collected: false,
             pulsePhase: 0
         };
@@ -30,6 +45,7 @@ class CrystalManager {
         this.crystals.forEach(crystal => {
             if (!crystal.collected) {
                 crystal.pulsePhase = (crystal.pulsePhase + 0.05) % (Math.PI * 2);
+                
             }
         });
 
@@ -50,6 +66,8 @@ class CrystalManager {
                     const crystalX = island.x + Math.random() * (island.width - 20);
                     const crystalY = island.y - 30; // Float above the platform
                     this.crystals.push(this.generateCrystal(crystalX, crystalY));
+                    
+                    
                 }
             });
         }
@@ -159,7 +177,7 @@ class CrystalManager {
                 const screenY = crystal.y - this.game.camera.y;
 
                 // Draw crystal glow
-                const glowSize = 15 + Math.sin(crystal.pulsePhase) * 5;
+                let glowSize = 15 + Math.sin(crystal.pulsePhase) * 5;
                 const gradient = ctx.createRadialGradient(
                     screenX, screenY, 0,
                     screenX, screenY, glowSize
@@ -175,12 +193,22 @@ class CrystalManager {
                     case 'void': colors = ['#141e30', '#243b55']; break;
                 }
 
-                gradient.addColorStop(0, colors[0] + '88');
+                // Make higher power crystals more vibrant
+                const alpha = 0.5 + (crystal.power / 15) * 0.5;
+                gradient.addColorStop(0, colors[0] + Math.floor(alpha * 255).toString(16).padStart(2, '0'));
                 gradient.addColorStop(1, colors[1] + '00');
 
                 ctx.fillStyle = gradient;
                 ctx.beginPath();
-                ctx.arc(screenX, screenY, glowSize, 0, Math.PI * 2);
+                let glowScale = 1 + (crystal.power / 15) * 2;
+
+                // Special effect for maximum power crystals
+                if (crystal.power >= 15) {
+                    glowScale = 3;
+                    glowSize = 30;
+                }
+
+                ctx.arc(screenX, screenY, glowSize * glowScale, 0, Math.PI * 2);
                 ctx.fill();
 
                 // Draw crystal
@@ -222,7 +250,7 @@ class Game {
         try {
             // Initialize in correct order
             await this.initializeGameWorld();
-            await this.setupAudio();
+            this.setupAudio();
             this.setupGameSystems();
             this.setupEventHandlers();
 
@@ -294,7 +322,7 @@ class Game {
                 console.log('Using crystal:', crystal);
                 const boost = crystal.power;
 
-                switch(crystal.element) {
+                switch (crystal.element) {
                     case 'fire':
                         console.log(`Fire crystal boosting strength from ${this.strength} by ${boost}`);
                         this.strength += boost;
@@ -503,11 +531,7 @@ class Game {
     checkCollisionWithIsland(island) {
         // If the island is pass-through, only check for collision from above
         if (island.passThrough) {
-            return this.player.x + 20 > island.x &&
-                this.player.x - 20 < island.x + island.width &&
-                this.player.y + 20 > island.y &&
-                this.player.y - 20 < island.y + 10 && // Only top portion
-                this.player.velocity.y > 0; // Only when falling
+            return false; // Always pass through
         }
 
         return this.player.x + 20 > island.x &&
@@ -571,14 +595,6 @@ class Game {
             this.ctx.fillRect(screenX, screenY, island.width, island.height);
             this.ctx.lineWidth = 2;
             this.ctx.strokeRect(screenX, screenY, island.width, island.height);
-
-            // If it's a pass-through platform, add visual indicator
-            if (island.passThrough) {
-                this.ctx.setLineDash([5, 5]);
-                this.ctx.strokeStyle = '#ffffff55';
-                this.ctx.strokeRect(screenX, screenY, island.width, island.height);
-                this.ctx.setLineDash([]); // Reset line dash
-            }
         });
     }
 
