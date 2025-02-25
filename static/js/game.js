@@ -446,20 +446,9 @@ class Game {
         // Batch movement updates
         this.updatePlayerMovement();
 
-        // Update camera position smoothly
-        this.camera.targetX = this.player.x - this.canvas.width / 2;
-        this.camera.targetY = this.player.y - this.canvas.height / 2;
-
-        // Calculate a more stable delta time with a maximum value to prevent jumps
-        const deltaTime = Math.min(timestamp - (this.lastFrameTime || timestamp), 32); // Cap at ~30 FPS worth of movement
-        const smoothFactor = deltaTime / 32; // Normalize to a 0-1 range
-
-        // Apply smoother camera movement with dampening
-        const dx = this.camera.targetX - this.camera.x;
-        const dy = this.camera.targetY - this.camera.y;
-
-        this.camera.x += dx * this.camera.smoothing * smoothFactor;
-        this.camera.y += dy * this.camera.smoothing * smoothFactor;
+        // Set camera position directly without smoothing
+        this.camera.x = this.player.x - this.canvas.width / 2;
+        this.camera.y = this.player.y - this.canvas.height / 2;
 
         // Update crystals on significant movement only
         if (timestamp - (this.lastCrystalUpdate || 0) > 100) {
@@ -487,6 +476,7 @@ class Game {
 //Import statements added here.  Paths may need adjustment depending on your project structure.
 import { InventorySystem } from './inventory.js';
 import { GameUI } from './ui.js';
+
 
 
 window.addEventListener('load', () => {
