@@ -137,12 +137,14 @@ class Game {
         this.canvas.height = this.canvas.offsetHeight;
 
         this.initializeGameState();
-        this.initializeGameWorld();
-        this.setupGameSystems();
-        this.setupEventHandlers();
-
-        // Start the game loop
-        this.gameLoop(0);
+        // Make constructor async to handle island loading
+        (async () => {
+            await this.initializeGameWorld();
+            this.setupGameSystems();
+            this.setupEventHandlers();
+            // Start the game loop
+            this.gameLoop(0);
+        })();
     }
 
     initializeGameState() {
@@ -184,62 +186,31 @@ class Game {
         };
     }
 
-    initializeGameWorld() {
-        this.islands = [
-            // Main starting island
-            {
+    async initializeGameWorld() {
+        await this.loadIslands();
+    }
+
+    async loadIslands() {
+        try {
+            const response = await fetch('/static/data/islands.json');
+            const data = await response.json();
+            this.islands = data.islands.map(island => ({
+                ...island,
+                // Adjust coordinates relative to canvas center
+                x: island.x + this.canvas.width / 2,
+                y: island.y + this.canvas.height / 2
+            }));
+        } catch (error) {
+            console.error('Error loading islands:', error);
+            // Fallback to default island if loading fails
+            this.islands = [{
                 x: this.canvas.width / 2 - 200,
                 y: this.canvas.height / 2 + 100,
                 width: 400,
                 height: 80,
                 type: 'grass'
-            },
-            // Floating islands in different positions
-            {
-                x: this.canvas.width / 2 - 500,
-                y: this.canvas.height / 2 - 100,
-                width: 250,
-                height: 60,
-                type: 'stone'
-            },
-            {
-                x: this.canvas.width / 2 + 300,
-                y: this.canvas.height / 2 - 150,
-                width: 300,
-                height: 70,
-                type: 'grass'
-            },
-            // Higher elevation islands
-            {
-                x: this.canvas.width / 2 - 200,
-                y: this.canvas.height / 2 - 250,
-                width: 180,
-                height: 50,
-                type: 'crystal'
-            },
-            {
-                x: this.canvas.width / 2 + 100,
-                y: this.canvas.height / 2 - 300,
-                width: 220,
-                height: 55,
-                type: 'stone'
-            },
-            // Lower islands
-            {
-                x: this.canvas.width / 2 - 400,
-                y: this.canvas.height / 2 + 200,
-                width: 150,
-                height: 45,
-                type: 'grass'
-            },
-            {
-                x: this.canvas.width / 2 + 450,
-                y: this.canvas.height / 2 + 150,
-                width: 280,
-                height: 65,
-                type: 'crystal'
-            }
-        ];
+            }];
+        }
     }
 
     setupGameSystems() {

@@ -1,0 +1,60 @@
+{
+  "islands": [
+    {
+      "x": 0,
+      "y": 0,
+      "width": 400,
+      "height": 80,
+      "type": "grass",
+      "description": "Main starting island"
+    },
+    {
+      "x": -300,
+      "y": -100,
+      "width": 250,
+      "height": 60,
+      "type": "stone",
+      "description": "Left floating island"
+    },
+    {
+      "x": 300,
+      "y": -150,
+      "width": 300,
+      "height": 70,
+      "type": "grass",
+      "description": "Right upper grass island"
+    },
+    {
+      "x": -200,
+      "y": -250,
+      "width": 180,
+      "height": 50,
+      "type": "crystal",
+      "description": "Upper crystal platform"
+    },
+    {
+      "x": 100,
+      "y": -300,
+      "width": 220,
+      "height": 55,
+      "type": "stone",
+      "description": "Highest stone platform"
+    },
+    {
+      "x": -400,
+      "y": 200,
+      "width": 150,
+      "height": 45,
+      "type": "grass",
+      "description": "Lower left grass island"
+    },
+    {
+      "x": 450,
+      "y": 150,
+      "width": 280,
+      "height": 65,
+      "type": "crystal",
+      "description": "Lower right crystal island"
+    }
+  ]
+}
