@@ -141,8 +141,7 @@ class Game {
             y: 0,
             targetX: 0,
             targetY: 0,
-            smoothing: 0.1, // Reduced from 0.1 to 0.05 for smoother movement
-            lastUpdate: 0
+            smoothing: 0.1  // Camera smoothing factor
         };
 
         this.player = {
@@ -394,9 +393,10 @@ class Game {
         this.camera.targetX = this.player.x - this.canvas.width / 2;
         this.camera.targetY = this.player.y - this.canvas.height / 2;
 
-        //this.camera.x += (this.camera.targetX - this.camera.x) * this.camera.smoothing;
-        //this.camera.y += (this.camera.targetY - this.camera.y) * this.camera.smoothing;
+        this.camera.x += (this.camera.targetX - this.camera.x) * this.camera.smoothing;
+        this.camera.y += (this.camera.targetY - this.camera.y) * this.camera.smoothing;
     }
+
 
     drawIslands() {
         this.islands.forEach(island => {
@@ -436,6 +436,7 @@ class Game {
 
     gameLoop(timestamp) {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        
 
         // Use transform for background
         this.ctx.save();
@@ -445,10 +446,8 @@ class Game {
 
         // Batch movement updates
         this.updatePlayerMovement();
+        this.updateCamera()
 
-        // Set camera position directly without smoothing, but round to reduce jitter
-        this.camera.x = Math.round(this.player.x - this.canvas.width / 2);
-        this.camera.y = Math.round(this.player.y - this.canvas.height / 2);
 
         // Update crystals on significant movement only
         if (timestamp - (this.lastCrystalUpdate || 0) > 100) {
@@ -458,8 +457,6 @@ class Game {
 
         // Use transform for all game objects
         this.ctx.save();
-        this.ctx.translate(-this.camera.x, -this.camera.y); // Apply rounded camera position
-
         this.drawIslands();
         this.crystalManager.draw(this.ctx);
         this.drawPlayer();
@@ -470,6 +467,7 @@ class Game {
         this.lastFrameTime = timestamp;
 
         requestAnimationFrame((timestamp) => this.gameLoop(timestamp));
+        
     }
 }
 
