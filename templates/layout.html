@@ -17,6 +17,7 @@
             height: 100vh;
             padding: 20px;
             background-color: #1a1a1a;
+            color: #e5e5e5;
         }
         #gameCanvas {
             width: 100%;
@@ -34,17 +35,22 @@
         .game-notification {
             pointer-events: auto;
             transition: opacity 0.3s ease-in-out;
+            color: #ffffff;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
         }
         .game-notification.fade-out {
             opacity: 0;
         }
         .card {
             background-color: rgba(33, 37, 41, 0.95);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #e5e5e5;
         }
         .card-header {
             background-color: rgba(33, 37, 41, 0.8);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            font-weight: 600;
         }
         .stats-grid {
             display: grid;
@@ -54,8 +60,24 @@
         .stat-item {
             padding: 5px;
             text-align: center;
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 4px;
+            color: #ffffff;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        }
+        .progress {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .list-group-item {
+            background-color: rgba(33, 37, 41, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #e5e5e5;
+        }
+        .text-muted {
+            color: #a0a0a0 !important;
+        }
+        small {
+            color: #cccccc;
         }
     </style>
 </head>
