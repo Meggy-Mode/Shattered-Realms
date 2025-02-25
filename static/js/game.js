@@ -3,7 +3,7 @@ class CrystalManager {
         this.game = game;
         this.crystals = [];
         this.lastSpawnTime = Date.now();
-        this.spawnInterval = 10000; 
+        this.spawnInterval = 1000; 
         this.elements = ['fire', 'ice', 'nature', 'arcane', 'void'];
         this.isCollecting = false;
     }
@@ -56,48 +56,56 @@ class CrystalManager {
     }
 
     async checkCollection() {
+        if (this.isCollecting) {
+            console.log('Collection already in progress');
+            return;
+        }
+
         const crystalsToCollect = [];
 
-        // First, identify all crystals that need to be collected
         this.crystals.forEach(crystal => {
             if (!crystal.collected) {
                 const dx = this.game.player.x - crystal.x;
                 const dy = this.game.player.y - crystal.y;
                 const distance = Math.sqrt(dx * dx + dy * dy);
 
-                if (distance < 40) { // Collection radius
+                if (distance < 40) {
+                    console.log('Found crystal in range:', crystal);
                     crystalsToCollect.push(crystal);
                 }
             }
         });
 
-        // If there are crystals to collect, set the lock
         if (crystalsToCollect.length > 0) {
+            console.log('Starting collection process for crystals:', crystalsToCollect.length);
             this.isCollecting = true;
 
-            // Process each crystal sequentially
-            for (const crystal of crystalsToCollect) {
-                crystal.collected = true;
-                await this.collectCrystal(crystal);
-                await new Promise(resolve => setTimeout(resolve, 100)); // Small delay between collections
+            try {
+                for (const crystal of crystalsToCollect) {
+                    if (!crystal.collected) {
+                        await this.collectCrystal(crystal);
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                    }
+                }
+            } catch (error) {
+                console.error('Error during crystal collection:', error);
+            } finally {
+                this.isCollecting = false;
             }
-
-            // Release the lock after all crystals are collected
-            this.isCollecting = false;
         }
     }
 
     async collectCrystal(crystal) {
+        if (!crystal || crystal.collected) {
+            console.log('Crystal already collected or invalid');
+            return;
+        }
+
+        console.log('Starting crystal collection:', crystal);
+
         try {
-            if (!crystal || crystal.collected) {
-                console.log('Crystal already collected or invalid');
-                return;
-            }
-
-            console.log('Collecting crystal:', crystal);
-
             if (!this.game.player.inventory) {
-                console.error('Player inventory not initialized');
+                console.error('Player inventory not initialized!');
                 return;
             }
 
@@ -110,38 +118,37 @@ class CrystalManager {
             };
 
             console.log('Adding crystal to inventory:', crystalItem);
+            const added = await this.game.player.inventory.addItem(crystalItem);
 
-            try {
-                const added = this.game.player.inventory.addItem(crystalItem);
-                if (added) {
-                    console.log('Crystal added successfully');
-                    crystal.collected = true;
+            if (added) {
+                crystal.collected = true;
+                this.crystals = this.crystals.filter(c => c !== crystal);
 
-                    // Play collection sound
-                    try {
-                        let note = 'C4';
-                        switch(crystal.element) {
-                            case 'fire': note = 'C4'; break;
-                            case 'ice': note = 'E4'; break;
-                            case 'nature': note = 'G4'; break;
-                            case 'arcane': note = 'B4'; break;
-                            case 'void': note = 'C2'; break;
-                        }
-                        this.game.synth.triggerAttackRelease(note, "8n");
-                    } catch (soundError) {
-                        console.error('Error playing crystal collection sound:', soundError);
-                    }
+                // Play collection sound
+                try {
+                    const note = {
+                        'fire': 'C4',
+                        'ice': 'E4',
+                        'nature': 'G4',
+                        'arcane': 'B4',
+                        'void': 'C2'
+                    }[crystal.element] || 'C4';
 
-                    this.game.ui?.showNotification(`Collected ${crystal.element} crystal!`, 'success');
-                    this.game.ui?.updatePlayerStats(true);
-                } else {
-                    console.error('Failed to add crystal to inventory');
+                    await this.game.synth.triggerAttackRelease(note, "8n");
+                } catch (soundError) {
+                    console.error('Sound error:', soundError);
                 }
-            } catch (addError) {
-                console.error('Error adding crystal to inventory:', addError);
+
+                if (this.game.ui) {
+                    this.game.ui.showNotification(`Collected ${crystal.element} crystal!`, 'success');
+                }
+                console.log('Crystal collection complete:', crystal.element);
+            } else {
+                console.error('Failed to add crystal to inventory');
             }
         } catch (error) {
-            console.error('Error in collectCrystal:', error);
+            console.error('Crystal collection error:', error);
+            throw error;
         }
     }
 
