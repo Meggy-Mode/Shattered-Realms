@@ -88,46 +88,45 @@ class CrystalManager {
     }
 
     async collectCrystal(crystal) {
-   
-            try {
-                if (!crystal || crystal.collected) return;
-                
-                // Add to inventory if it exists
-                if (this.game.player.inventory) {
-                    this.game.player.inventory.addItem({
-                        type: 'echo_crystal',
-                        name: `${crystal.element.charAt(0).toUpperCase() + crystal.element.slice(1)} Echo Crystal`,
-                        element: crystal.element,
-                        power: crystal.power,
-                        quantity: 1
-                    });
-                }
-                // Play collection sound with proper error handling
-                            try {
+        try {
+            if (!crystal || crystal.collected) return;
 
-                                    // Play different notes based on crystal element
-                                    let note = 'C4';
-                                    switch(crystal.element) {
-                                        case 'fire': note = 'C4'; break;
-                                        case 'ice': note = 'E4'; break;
-                                        case 'nature': note = 'G4'; break;
-                                        case 'arcane': note = 'B4'; break;
-                                        case 'void': note = 'C2'; break;
-                                        default: note = 'C4';
-                                    }
-                this.game.synth.triggerAttackRelease(note, "8n");
-                                    
-                            } catch (soundError) {
-                                console.error('Error playing crystal collection sound:', soundError);
-                            }
-                        // Show notification if UI is initialized
-                        if (this.game.ui) {
-                            this.game.ui.showNotification(`Collected ${crystal.element} crystal!`, 'success');
-                        }
-                    } catch (error) {
-                        console.error('Error collecting crystal:', error);
-                    }
+            // Add to inventory if it exists
+            if (this.game.player.inventory) {
+                this.game.player.inventory.addItem({
+                    type: 'echo_crystal',
+                    name: `${crystal.element.charAt(0).toUpperCase() + crystal.element.slice(1)} Echo Crystal`,
+                    element: crystal.element,
+                    power: crystal.power,
+                    quantity: 1
+                });
             }
+            // Play collection sound with proper error handling
+                    try {
+
+                            // Play different notes based on crystal element
+                            let note = 'C4';
+                            switch(crystal.element) {
+                                case 'fire': note = 'C4'; break;
+                                case 'ice': note = 'E4'; break;
+                                case 'nature': note = 'G4'; break;
+                                case 'arcane': note = 'B4'; break;
+                                case 'void': note = 'C2'; break;
+                                default: note = 'C4';
+                            }
+                    this.game.synth.triggerAttackRelease(note, "8n");
+                            
+                        } catch (soundError) {
+                            console.error('Error playing crystal collection sound:', soundError);
+                        }
+                    // Show notification if UI is initialized
+                    if (this.game.ui) {
+                        this.game.ui.showNotification(`Collected ${crystal.element} crystal!`, 'success');
+                    }
+                } catch (error) {
+                    console.error('Error collecting crystal:', error);
+                }
+        }
 
     draw(ctx) {
         this.crystals.forEach(crystal => {
@@ -220,7 +219,10 @@ class Game {
                 ...island,
                 // Adjust coordinates relative to canvas center
                 x: island.x + this.canvas.width / 2,
-                y: island.y + this.canvas.height / 2
+                y: island.y + this.canvas.height / 2,
+                // Ensure default values for new properties
+                texture: island.texture || 'default',
+                passThrough: island.passThrough || false
             }));
         } catch (error) {
             console.error('Error loading islands:', error);
@@ -431,6 +433,15 @@ class Game {
     }
 
     checkCollisionWithIsland(island) {
+        // If the island is pass-through, only check for collision from above
+        if (island.passThrough) {
+            return this.player.x + 20 > island.x &&
+                this.player.x - 20 < island.x + island.width &&
+                this.player.y + 20 > island.y &&
+                this.player.y - 20 < island.y + 10 && // Only top portion
+                this.player.velocity.y > 0; // Only when falling
+        }
+
         return this.player.x + 20 > island.x &&
             this.player.x - 20 < island.x + island.width &&
             this.player.y + 20 > island.y &&
@@ -476,6 +487,7 @@ class Game {
             const screenX = island.x - this.camera.x;
             const screenY = island.y - this.camera.y;
 
+            // Set fill and stroke styles based on island type
             if (island.type === "stone") {
                 this.ctx.fillStyle = '#4a5568';
                 this.ctx.strokeStyle = '#718096';
@@ -487,9 +499,18 @@ class Game {
                 this.ctx.strokeStyle = '#a6a6aa';
             }
 
+            // Draw the island
             this.ctx.fillRect(screenX, screenY, island.width, island.height);
             this.ctx.lineWidth = 2;
             this.ctx.strokeRect(screenX, screenY, island.width, island.height);
+
+            // If it's a pass-through platform, add visual indicator
+            if (island.passThrough) {
+                this.ctx.setLineDash([5, 5]);
+                this.ctx.strokeStyle = '#ffffff55';
+                this.ctx.strokeRect(screenX, screenY, island.width, island.height);
+                this.ctx.setLineDash([]); // Reset line dash
+            }
         });
     }
 
