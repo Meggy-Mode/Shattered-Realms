@@ -6,9 +6,10 @@ channel = "stable-24_05"
 
 [deployment]
 deploymentTarget = "autoscale"
-run = ["gunicorn", "--bind", "0.0.0.0:5000", "main:app"]
+run = ["sh", "-c", "python main.py"]
 
 [workflows]
+runButton = "Project"
 
 [[workflows.workflow]]
 name = "Project"
@@ -17,10 +18,10 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Flask Web Server"
+args = "Flask Server"
 
 [[workflows.workflow]]
-name = "Flask Web Server"
+name = "Flask Server"
 author = "agent"
 
 [workflows.workflow.metadata]

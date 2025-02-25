@@ -287,7 +287,33 @@ class Game {
             strength: 15,
             intelligence: 12,
             dexterity: 10,
-            class: 'Seeker'
+            class: 'Seeker',
+
+            // Add method to use crystals
+            useEchoCrystal: function(crystal) {
+                console.log('Using crystal:', crystal);
+                const boost = crystal.power;
+
+                switch(crystal.element) {
+                    case 'fire':
+                        this.strength += boost;
+                        return true;
+                    case 'ice':
+                        this.intelligence += boost;
+                        return true;
+                    case 'nature':
+                        this.health = Math.min(100, this.health + boost * 2);
+                        return true;
+                    case 'arcane':
+                        this.mana = Math.min(100, this.mana + boost * 2);
+                        return true;
+                    case 'void':
+                        this.dexterity += boost;
+                        return true;
+                    default:
+                        return false;
+                }
+            }
         };
 
         this.moveState = {
