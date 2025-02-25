@@ -3,16 +3,17 @@ class CrystalManager {
         this.game = game;
         this.crystals = [];
         this.lastSpawnTime = Date.now();
-        this.spawnInterval = 10000; // Spawn new crystals every 10 seconds
+        this.spawnInterval = 10000; 
         this.elements = ['fire', 'ice', 'nature', 'arcane', 'void'];
+        this.isCollecting = false; // Lock for collection process
     }
 
     generateCrystal(x, y) {
         return {
             x,
             y,
-            element: 'void',
-            power: 'void',
+            element: this.elements[Math.floor(Math.random() * this.elements.length)],
+            power: Math.floor(Math.random() * 10) + 1,
             collected: false,
             pulsePhase: 0
         };
@@ -33,7 +34,9 @@ class CrystalManager {
         });
 
         // Check for crystal collection
-        this.checkCollection();
+        if (!this.isCollecting) {
+            this.checkCollection();
+        }
     }
 
     spawnCrystals() {
@@ -41,16 +44,21 @@ class CrystalManager {
         this.crystals = this.crystals.filter(crystal => !crystal.collected);
 
         // Spawn new crystals on crystal platforms
-        this.game.islands.forEach(island => {
-            if (island.type === 'crystal' && this.crystals.length < 10) {
-                const crystalX = island.x + Math.random() * (island.width - 20);
-                const crystalY = island.y - 30; // Float above the platform
-                this.crystals.push(this.generateCrystal(crystalX, crystalY));
-            }
-        });
+        if (this.game.islands) {
+            this.game.islands.forEach(island => {
+                if (island.type === 'crystal' && this.crystals.length < 10) {
+                    const crystalX = island.x + Math.random() * (island.width - 20);
+                    const crystalY = island.y - 30; // Float above the platform
+                    this.crystals.push(this.generateCrystal(crystalX, crystalY));
+                }
+            });
+        }
     }
 
-    checkCollection() {
+    async checkCollection() {
+        const crystalsToCollect = [];
+
+        // First, identify all crystals that need to be collected
         this.crystals.forEach(crystal => {
             if (!crystal.collected) {
                 const dx = this.game.player.x - crystal.x;
@@ -58,26 +66,68 @@ class CrystalManager {
                 const distance = Math.sqrt(dx * dx + dy * dy);
 
                 if (distance < 40) { // Collection radius
-                    crystal.collected = true;
-                    this.collectCrystal(crystal);
+                    crystalsToCollect.push(crystal);
                 }
             }
         });
+
+        // If there are crystals to collect, set the lock
+        if (crystalsToCollect.length > 0) {
+            this.isCollecting = true;
+
+            // Process each crystal sequentially
+            for (const crystal of crystalsToCollect) {
+                crystal.collected = true;
+                await this.collectCrystal(crystal);
+                await new Promise(resolve => setTimeout(resolve, 100)); // Small delay between collections
+            }
+
+            // Release the lock after all crystals are collected
+            this.isCollecting = false;
+        }
     }
 
-    collectCrystal(crystal) {
-        // Add to inventory
-        this.game.player.inventory.addItem({
-            type: 'echo_crystal',
-            name: 'Echo Crystal',
-            element: 'void',
-            power: 'void',
-            quantity: 1
-        });
+    async collectCrystal(crystal) {
+   
+            try {
+                if (!crystal || crystal.collected) return;
+                
+                // Add to inventory if it exists
+                if (this.game.player.inventory) {
+                    this.game.player.inventory.addItem({
+                        type: 'echo_crystal',
+                        name: `${crystal.element.charAt(0).toUpperCase() + crystal.element.slice(1)} Echo Crystal`,
+                        element: crystal.element,
+                        power: crystal.power,
+                        quantity: 1
+                    });
+                }
+                // Play collection sound with proper error handling
+                            try {
 
-        // Play collection sound
-        this.game.synth.triggerAttackRelease(`${crystal.element === 'void' ? 'C2' : 'C4'}`, "8n");
-    }
+                                    // Play different notes based on crystal element
+                                    let note = 'C4';
+                                    switch(crystal.element) {
+                                        case 'fire': note = 'C4'; break;
+                                        case 'ice': note = 'E4'; break;
+                                        case 'nature': note = 'G4'; break;
+                                        case 'arcane': note = 'B4'; break;
+                                        case 'void': note = 'C2'; break;
+                                        default: note = 'C4';
+                                    }
+                this.game.synth.triggerAttackRelease(note, "8n");
+                                    
+                            } catch (soundError) {
+                                console.error('Error playing crystal collection sound:', soundError);
+                            }
+                        // Show notification if UI is initialized
+                        if (this.game.ui) {
+                            this.game.ui.showNotification(`Collected ${crystal.element} crystal!`, 'success');
+                        }
+                    } catch (error) {
+                        console.error('Error collecting crystal:', error);
+                    }
+            }
 
     draw(ctx) {
         this.crystals.forEach(crystal => {
@@ -149,12 +199,13 @@ class Game {
         try {
             await this.initializeGameWorld();
             this.setupGameSystems();
+            this.setupAudio(); // Moved this line here
             this.setupEventHandlers();
             // Start the game loop only after initialization is complete
             this.gameLoop(0);
         } catch (error) {
             console.error('Failed to initialize game:', error);
-            this.ui.showNotification('Failed to initialize game', 'error');
+            this.ui?.showNotification('Failed to initialize game', 'error');
         }
     }
 
@@ -231,9 +282,6 @@ class Game {
 
         // Initialize UI last to ensure all dependencies are available
         this.ui = new GameUI(this);
-
-        // Setup audio system
-        this.setupAudio();
 
         this.lastFrameTime = 0;
         this.lastCrystalUpdate = 0;
@@ -390,7 +438,29 @@ class Game {
     }
 
     setupAudio() {
-        this.synth = new Tone.Synth().toDestination();
+        try {
+            // Initialize Tone.js
+            this.synth = new Tone.Synth({
+                oscillator: {
+                    type: "sine"
+                },
+                envelope: {
+                    attack: 0.01,
+                    decay: 0.1,
+                    sustain: 0.3,
+                    release: 1
+                }
+            }).toDestination();
+
+            // Set initial volume
+            this.synth.volume.value = -10;
+
+            // Start audio context
+            Tone.start();
+        } catch (error) {
+            console.error('Error initializing audio:', error);
+            this.ui?.showNotification('Audio initialization failed', 'error');
+        }
     }
 
     updateCamera() {
@@ -400,7 +470,6 @@ class Game {
         this.camera.x += (this.camera.targetX - this.camera.x) * this.camera.smoothing;
         this.camera.y += (this.camera.targetY - this.camera.y) * this.camera.smoothing;
     }
-
 
     drawIslands() {
         this.islands.forEach(island => {
