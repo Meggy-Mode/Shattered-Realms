@@ -111,6 +111,101 @@
         .echo-crystal.crystal-nature { border-left: 3px solid #4dff4d; }
         .echo-crystal.crystal-arcane { border-left: 3px solid #ff4dff; }
         .echo-crystal.crystal-void { border-left: 3px solid #4d4d4d; }
+
+        /* Crystal modal styles */
+        .crystal-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(33, 37, 41, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 20px;
+            z-index: 9999; /* Increased z-index further */
+            color: #e5e5e5;
+            min-width: 300px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            pointer-events: auto; /* Ensure clicks are registered */
+        }
+        .crystal-modal.active {
+            display: block;
+            animation: fadeIn 0.2s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translate(-50%, -48%); }
+            to { opacity: 1; transform: translate(-50%, -50%); }
+        }
+        .crystal-modal-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9998;
+            pointer-events: auto;
+        }
+        .crystal-modal-backdrop.active {
+            display: block;
+            animation: fadeIn 0.2s ease-out;
+        }
+        .crystal-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .crystal-modal-title {
+            margin: 0;
+            color: #ffffff;
+            font-size: 1.2em;
+        }
+        .crystal-modal-close {
+            background: none;
+            border: none;
+            color: #ffffff;
+            cursor: pointer;
+            font-size: 1.5em;
+            padding: 0;
+            line-height: 1;
+        }
+        .crystal-modal-body {
+            margin-bottom: 20px;
+        }
+        .crystal-modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .crystal-stat {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+        .crystal-modal .btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .crystal-modal .btn-primary {
+            background: #0d6efd;
+            border: none;
+            color: white;
+        }
+        .crystal-modal .btn-secondary {
+            background: #6c757d;
+            border: none;
+            color: white;
+        }
     </style>
 </head>
 <body class="bg-dark text-light">
@@ -120,6 +215,33 @@
 
     <!-- Create notification area -->
     <div id="notification-area" class="notification-area"></div>
+
+    <!-- Crystal Modal -->
+    <div id="crystalModal" class="crystal-modal">
+        <div class="crystal-modal-header">
+            <h3 class="crystal-modal-title">Crystal Details</h3>
+            <button class="crystal-modal-close">&times;</button>
+        </div>
+        <div class="crystal-modal-body">
+            <div class="crystal-stat">
+                <span>Element:</span>
+                <span id="crystalElement"></span>
+            </div>
+            <div class="crystal-stat">
+                <span>Power:</span>
+                <span id="crystalPower"></span>
+            </div>
+            <div class="crystal-stat">
+                <span>Quantity:</span>
+                <span id="crystalQuantity"></span>
+            </div>
+        </div>
+        <div class="crystal-modal-footer">
+            <button class="btn btn-secondary" id="cancelUseBtn">Cancel</button>
+            <button class="btn btn-primary" id="confirmUseBtn">Use Crystal</button>
+        </div>
+    </div>
+    <div id="crystalModalBackdrop" class="crystal-modal-backdrop"></div>
 
     <!-- Load scripts in correct order -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

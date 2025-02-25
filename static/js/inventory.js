@@ -5,16 +5,87 @@ export class InventorySystem {
         this.maxSize = 20;
         console.log('Initializing InventorySystem');
         this.setupUI();
+        this.selectedCrystalIndex = null;
     }
 
     setupUI() {
         this.container = document.getElementById('inventory');
-        console.log('Setting up inventory UI, container:', this.container);
+        this.modal = document.getElementById('crystalModal');
+        this.modalBackdrop = document.getElementById('crystalModalBackdrop');
+        this.confirmUseBtn = document.getElementById('confirmUseBtn');
+        this.cancelUseBtn = document.getElementById('cancelUseBtn');
+        this.closeModalBtn = document.querySelector('.crystal-modal-close');
+
+        console.log('Setting up inventory UI elements:', {
+            container: this.container,
+            modal: this.modal,
+            modalBackdrop: this.modalBackdrop,
+            confirmUseBtn: this.confirmUseBtn,
+            cancelUseBtn: this.cancelUseBtn,
+            closeModalBtn: this.closeModalBtn
+        });
+
         if (!this.container) {
             console.error('Inventory container not found!');
             return;
         }
+
+        // Setup modal event listeners
+        this.confirmUseBtn.addEventListener('click', () => {
+            console.log('Confirm use button clicked');
+            this.useCrystal();
+        });
+        this.cancelUseBtn.addEventListener('click', () => {
+            console.log('Cancel button clicked');
+            this.hideModal();
+        });
+        this.closeModalBtn.addEventListener('click', () => {
+            console.log('Close button clicked');
+            this.hideModal();
+        });
+        this.modalBackdrop.addEventListener('click', () => {
+            console.log('Modal backdrop clicked');
+            this.hideModal();
+        });
+
         this.render();
+    }
+
+    showCrystalModal(crystal, index) {
+        console.log('Showing crystal modal for:', crystal, 'at index:', index);
+        this.selectedCrystalIndex = index;
+
+        const elementSpan = document.getElementById('crystalElement');
+        const powerSpan = document.getElementById('crystalPower');
+        const quantitySpan = document.getElementById('crystalQuantity');
+
+        console.log('Setting modal content:', {
+            element: crystal.element,
+            power: crystal.power,
+            quantity: crystal.quantity
+        });
+
+        elementSpan.textContent = crystal.element;
+        powerSpan.textContent = crystal.power;
+        quantitySpan.textContent = crystal.quantity;
+
+        this.modal.classList.add('active');
+        this.modalBackdrop.classList.add('active');
+    }
+
+    hideModal() {
+        console.log('Hiding crystal modal');
+        this.modal.classList.remove('active');
+        this.modalBackdrop.classList.remove('active');
+        this.selectedCrystalIndex = null;
+    }
+
+    useCrystal() {
+        console.log('Using crystal at index:', this.selectedCrystalIndex);
+        if (this.selectedCrystalIndex !== null) {
+            this.useItem(this.selectedCrystalIndex);
+            this.hideModal();
+        }
     }
 
     addItem(item) {
@@ -34,7 +105,7 @@ export class InventorySystem {
         // Special handling for echo crystals
         if (item.type === 'echo_crystal') {
             console.log('Processing echo crystal:', item);
-            const existingCrystal = this.items.find(i =>
+            const existingCrystal = this.items.find(i => 
                 i.type === 'echo_crystal' &&
                 i.element === item.element &&
                 i.power === item.power
@@ -48,7 +119,6 @@ export class InventorySystem {
             }
         }
 
-        // Create a new item with default quantity
         const newItem = {
             ...item,
             quantity: item.quantity || 1
@@ -57,7 +127,6 @@ export class InventorySystem {
         console.log('Adding new item to inventory:', newItem);
         this.items.push(newItem);
 
-        // Force UI update
         this.render();
         return true;
     }
@@ -110,6 +179,12 @@ export class InventorySystem {
                         </div>
                         <span class="badge bg-primary rounded-pill">×${item.quantity}</span>
                     `;
+
+                    // Add click handler for crystals
+                    itemElement.onclick = () => {
+                        console.log('Crystal clicked:', item);
+                        this.showCrystalModal(item, index);
+                    };
                 } else {
                     itemElement.innerHTML = `
                         <div class="d-flex align-items-center">
@@ -120,7 +195,6 @@ export class InventorySystem {
                     `;
                 }
 
-                itemElement.onclick = () => this.useItem(index);
                 itemList.appendChild(itemElement);
             });
         }
