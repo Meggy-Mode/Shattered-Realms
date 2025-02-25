@@ -101,32 +101,37 @@ class CrystalManager {
                     quantity: 1
                 });
             }
-            // Play collection sound with proper error handling
-                    try {
 
-                            // Play different notes based on crystal element
-                            let note = 'C4';
-                            switch(crystal.element) {
-                                case 'fire': note = 'C4'; break;
-                                case 'ice': note = 'E4'; break;
-                                case 'nature': note = 'G4'; break;
-                                case 'arcane': note = 'B4'; break;
-                                case 'void': note = 'C2'; break;
-                                default: note = 'C4';
-                            }
-                    this.game.synth.triggerAttackRelease(note, "8n");
-                            
-                        } catch (soundError) {
-                            console.error('Error playing crystal collection sound:', soundError);
-                        }
-                    // Show notification if UI is initialized
-                    if (this.game.ui) {
-                        this.game.ui.showNotification(`Collected ${crystal.element} crystal!`, 'success');
-                    }
-                } catch (error) {
-                    console.error('Error collecting crystal:', error);
+            // Trigger immediate UI update
+            if (this.game.ui) {
+                this.game.ui.updatePlayerStats(true); // Force update
+            }
+
+            // Play collection sound with proper error handling
+            try {
+                // Play different notes based on crystal element
+                let note = 'C4';
+                switch(crystal.element) {
+                    case 'fire': note = 'C4'; break;
+                    case 'ice': note = 'E4'; break;
+                    case 'nature': note = 'G4'; break;
+                    case 'arcane': note = 'B4'; break;
+                    case 'void': note = 'C2'; break;
+                    default: note = 'C4';
                 }
+                this.game.synth.triggerAttackRelease(note, "8n");
+            } catch (soundError) {
+                console.error('Error playing crystal collection sound:', soundError);
+            }
+
+            // Show notification if UI is initialized
+            if (this.game.ui) {
+                this.game.ui.showNotification(`Collected ${crystal.element} crystal!`, 'success');
+            }
+        } catch (error) {
+            console.error('Error collecting crystal:', error);
         }
+    }
 
     draw(ctx) {
         this.crystals.forEach(crystal => {
@@ -547,12 +552,15 @@ class Game {
             this.lastCrystalUpdate = timestamp;
         }
 
-        // Update UI elements periodically
-        if (timestamp - (this.lastUIUpdate || 0) > 500) {
+        // Update UI elements more frequently (every frame)
+        if (this.ui) {
             this.ui.updatePlayerStats();
-            this.ui.updateQuestLog();
-            this.ui.updateFactionStatus();
-            this.lastUIUpdate = timestamp;
+            // Only update quest and faction status less frequently
+            if (timestamp - (this.lastUIUpdate || 0) > 500) {
+                this.ui.updateQuestLog();
+                this.ui.updateFactionStatus();
+                this.lastUIUpdate = timestamp;
+            }
         }
 
         // Use transform for all game objects
