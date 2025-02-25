@@ -79,20 +79,24 @@
         small {
             color: #cccccc;
         }
-        .inventory-list {
+        .inventory-container {
             max-height: 300px;
             overflow-y: auto;
+        }
+        .inventory-list {
+            max-height: none;
+            overflow-y: visible;
             scrollbar-width: thin;
             scrollbar-color: rgba(255, 255, 255, 0.2) rgba(33, 37, 41, 0.95);
         }
-        .inventory-list::-webkit-scrollbar {
+        .inventory-container::-webkit-scrollbar {
             width: 8px;
         }
-        .inventory-list::-webkit-scrollbar-track {
+        .inventory-container::-webkit-scrollbar-track {
             background: rgba(33, 37, 41, 0.95);
         }
-        .inventory-list::-webkit-scrollbar-thumb {
-            background-color: rgba(255, 255, 0.2);
+        .inventory-container::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.2);
             border-radius: 4px;
         }
         .echo-crystal {
