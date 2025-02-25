@@ -2,16 +2,26 @@ export class GameUI {
     constructor(game) {
         this.game = game;
         this.cachedValues = {};
-        this.setupEventListeners();
         this.cacheElements();
+        this.setupEventListeners();
+        this.initializeUI();
     }
 
     cacheElements() {
         this.elements = {
             playerStats: document.getElementById('playerStats'),
             questLog: document.getElementById('questLog'),
-            factionStatus: document.getElementById('factionStatus')
+            factionStatus: document.getElementById('factionStatus'),
+            notificationArea: document.getElementById('notification-area') || this.createNotificationArea()
         };
+    }
+
+    createNotificationArea() {
+        const notificationArea = document.createElement('div');
+        notificationArea.id = 'notification-area';
+        notificationArea.className = 'notification-area';
+        document.body.appendChild(notificationArea);
+        return notificationArea;
     }
 
     setupEventListeners() {
@@ -22,16 +32,23 @@ export class GameUI {
         }
     }
 
-    shouldUpdate(key, newValue) {
-        if (JSON.stringify(this.cachedValues[key]) !== JSON.stringify(newValue)) {
+    initializeUI() {
+        // Force initial update of all UI components
+        this.updatePlayerStats(true);
+        this.updateQuestLog(true);
+        this.updateFactionStatus(true);
+        this.showNotification('Game UI loaded successfully', 'success');
+    }
+
+    shouldUpdate(key, newValue, forceUpdate = false) {
+        if (forceUpdate || JSON.stringify(this.cachedValues[key]) !== JSON.stringify(newValue)) {
             this.cachedValues[key] = newValue;
             return true;
         }
         return false;
     }
 
-    // Update methods now only run when explicitly called by game events
-    updatePlayerStats() {
+    updatePlayerStats(forceUpdate = false) {
         const newStats = {
             level: this.game.player.level,
             class: this.game.player.class,
@@ -44,11 +61,11 @@ export class GameUI {
             dexterity: this.game.player.dexterity
         };
 
-        if (!this.shouldUpdate('playerStats', newStats)) return;
+        if (!this.shouldUpdate('playerStats', newStats, forceUpdate)) return;
 
         const statsHtml = `
             <div class="card-text mb-3">
-                <h5 class="mb-2">Level ${newStats.level}</h5>
+                <h5 class="mb-2">${newStats.class} - Level ${newStats.level}</h5>
                 <div class="progress mb-2">
                     <div class="progress-bar bg-success" 
                          role="progressbar" 
@@ -98,21 +115,25 @@ export class GameUI {
         }
     }
 
-    updateQuestLog() {
+    updateQuestLog(forceUpdate = false) {
         const questData = {
-            progress: 0
+            progress: 0,
+            currentQuest: 'The Echo Crystal',
+            questDescription: 'Find the first Echo Crystal in the Ember Wastes',
+            location: 'Ember Wastes'
         };
 
-        if (!this.shouldUpdate('questLog', questData)) return;
+        if (!this.shouldUpdate('questLog', questData, forceUpdate)) return;
 
         const questHtml = `
             <div class="list-group">
                 <div class="list-group-item">
-                    <h5 class="mb-1">Main Quest: The Echo Crystal</h5>
-                    <small>Find the first Echo Crystal in the Ember Wastes</small>
+                    <h5 class="mb-1">Main Quest: ${questData.currentQuest}</h5>
+                    <small>${questData.questDescription}</small>
                     <div class="progress mt-2" style="height: 5px;">
                         <div class="progress-bar" role="progressbar" style="width: ${questData.progress}%"></div>
                     </div>
+                    <small class="text-muted mt-2 d-block">Current Location: ${questData.location}</small>
                 </div>
             </div>
         `;
@@ -122,14 +143,14 @@ export class GameUI {
         }
     }
 
-    updateFactionStatus() {
+    updateFactionStatus(forceUpdate = false) {
         const factionData = {
             skyborn: 'Neutral',
             shardwalkers: 'Cautious',
             echoCultists: 'Hostile'
         };
 
-        if (!this.shouldUpdate('factionStatus', factionData)) return;
+        if (!this.shouldUpdate('factionStatus', factionData, forceUpdate)) return;
 
         const factionHtml = `
             <div class="list-group">
@@ -154,18 +175,21 @@ export class GameUI {
     }
 
     showNotification(message, type = 'info') {
-        let notification = document.querySelector('.game-notification');
-        if (!notification) {
-            notification = document.createElement('div');
-            notification.className = `game-notification alert alert-${type} position-fixed top-0 end-0 m-3`;
-            document.body.appendChild(notification);
-        }
+        let notification = document.createElement('div');
+        notification.className = `game-notification alert alert-${type} position-fixed top-0 end-0 m-3`;
         notification.innerHTML = message;
-        notification.classList.remove('fade-out');
+
+        this.elements.notificationArea.appendChild(notification);
 
         setTimeout(() => {
             notification.classList.add('fade-out');
             setTimeout(() => notification.remove(), 300);
         }, 2700);
+    }
+
+    toggleStatsPanel() {
+        if (this.elements.playerStats) {
+            this.elements.playerStats.classList.toggle('expanded');
+        }
     }
 }

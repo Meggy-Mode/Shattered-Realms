@@ -136,12 +136,22 @@ class Game {
         this.canvas.width = this.canvas.offsetWidth;
         this.canvas.height = this.canvas.offsetHeight;
 
+        this.initializeGameState();
+        this.initializeGameWorld();
+        this.setupGameSystems();
+        this.setupEventHandlers();
+
+        // Start the game loop
+        this.gameLoop(0);
+    }
+
+    initializeGameState() {
         this.camera = {
             x: 0,
             y: 0,
             targetX: 0,
             targetY: 0,
-            smoothing: 0.1  // Camera smoothing factor
+            smoothing: 0.1
         };
 
         this.player = {
@@ -154,7 +164,7 @@ class Game {
             gravity: 0.2,
             jumpForce: -8,
             isGrounded: false,
-            inventory: new InventorySystem(this),
+            inventory: null, // Will be initialized in setupGameSystems
             health: 100,
             mana: 100,
             level: 1,
@@ -172,7 +182,9 @@ class Game {
             left: false,
             right: false
         };
+    }
 
+    initializeGameWorld() {
         this.islands = [
             // Main starting island
             {
@@ -228,15 +240,27 @@ class Game {
                 type: 'crystal'
             }
         ];
+    }
 
+    setupGameSystems() {
+        // Initialize inventory first since UI depends on it
+        this.player.inventory = new InventorySystem(this);
+
+        // Initialize crystal manager
         this.crystalManager = new CrystalManager(this);
-        this.ui = new GameUI(this);
-        this.lastFrameTime = 0;
-        this.lastCrystalUpdate = 0; // Added to track crystal update timing
 
-        this.setupControls();
+        // Initialize UI last to ensure all dependencies are available
+        this.ui = new GameUI(this);
+
+        // Setup audio system
         this.setupAudio();
-        this.gameLoop(0);
+
+        this.lastFrameTime = 0;
+        this.lastCrystalUpdate = 0;
+    }
+
+    setupEventHandlers() {
+        this.setupControls();
 
         window.addEventListener('resize', () => {
             this.canvas.width = this.canvas.offsetWidth;
@@ -436,7 +460,6 @@ class Game {
 
     gameLoop(timestamp) {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        
 
         // Use transform for background
         this.ctx.save();
@@ -446,8 +469,7 @@ class Game {
 
         // Batch movement updates
         this.updatePlayerMovement();
-        this.updateCamera()
-
+        this.updateCamera();
 
         // Update crystals on significant movement only
         if (timestamp - (this.lastCrystalUpdate || 0) > 100) {
@@ -455,19 +477,25 @@ class Game {
             this.lastCrystalUpdate = timestamp;
         }
 
+        // Update UI elements periodically
+        if (timestamp - (this.lastUIUpdate || 0) > 500) {
+            this.ui.updatePlayerStats();
+            this.ui.updateQuestLog();
+            this.ui.updateFactionStatus();
+            this.lastUIUpdate = timestamp;
+        }
+
         // Use transform for all game objects
         this.ctx.save();
         this.drawIslands();
         this.crystalManager.draw(this.ctx);
         this.drawPlayer();
-
         this.ctx.restore();
 
         // Update last frame time for delta calculations
         this.lastFrameTime = timestamp;
 
         requestAnimationFrame((timestamp) => this.gameLoop(timestamp));
-        
     }
 }
 
