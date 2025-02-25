@@ -5,7 +5,7 @@ export class InventorySystem {
         this.maxSize = 20;
         console.log('Initializing InventorySystem');
         this.setupUI();
-        this.selectedCrystalIndex = null;
+        this.selectedCrystal = null;
     }
 
     setupUI() {
@@ -51,9 +51,9 @@ export class InventorySystem {
         this.render();
     }
 
-    showCrystalModal(crystal, index) {
-        console.log('Showing crystal modal for:', crystal, 'at index:', index);
-        this.selectedCrystalIndex = index;
+    showCrystalModal(crystal) {
+        console.log('Showing crystal modal for:', crystal);
+        this.selectedCrystal = crystal;
 
         const elementSpan = document.getElementById('crystalElement');
         const powerSpan = document.getElementById('crystalPower');
@@ -77,14 +77,33 @@ export class InventorySystem {
         console.log('Hiding crystal modal');
         this.modal.classList.remove('active');
         this.modalBackdrop.classList.remove('active');
-        this.selectedCrystalIndex = null;
+        this.selectedCrystal = null;
     }
 
     useCrystal() {
-        console.log('Using crystal at index:', this.selectedCrystalIndex);
-        if (this.selectedCrystalIndex !== null) {
-            this.useItem(this.selectedCrystalIndex);
+        console.log('Using crystal:', this.selectedCrystal);
+        if (this.selectedCrystal) {
+            if (this.game.player.useEchoCrystal) {
+                const success = this.game.player.useEchoCrystal(this.selectedCrystal);
+                if (success) {
+                    this.selectedCrystal.quantity--;
+                    if (this.selectedCrystal.quantity <= 0) {
+                        const index = this.items.indexOf(this.selectedCrystal);
+                        if (index > -1) {
+                            this.removeItem(index);
+                        }
+                    } else {
+                        this.render();
+                    }
+                    this.game.ui?.showNotification(`Used ${this.selectedCrystal.name}`, 'success');
+                }
+            }
             this.hideModal();
+
+            // Update UI after using item
+            if (this.game.ui) {
+                this.game.ui.updatePlayerStats(true);
+            }
         }
     }
 
@@ -164,7 +183,7 @@ export class InventorySystem {
                 return 0;
             });
 
-            sortedItems.forEach((item, index) => {
+            sortedItems.forEach((item) => {
                 const itemElement = document.createElement('li');
                 itemElement.className = 'list-group-item d-flex justify-content-between align-items-center';
 
@@ -183,7 +202,7 @@ export class InventorySystem {
                     // Add click handler for crystals
                     itemElement.onclick = () => {
                         console.log('Crystal clicked:', item);
-                        this.showCrystalModal(item, index);
+                        this.showCrystalModal(item);
                     };
                 } else {
                     itemElement.innerHTML = `
@@ -201,31 +220,5 @@ export class InventorySystem {
 
         this.container.appendChild(itemList);
         console.log('Inventory render complete');
-    }
-
-    useItem(index) {
-        const item = this.items[index];
-        if (!item) return;
-
-        if (item.type === 'echo_crystal') {
-            // Echo crystal effects
-            if (this.game.player.useEchoCrystal) {
-                const success = this.game.player.useEchoCrystal(item);
-                if (success) {
-                    item.quantity--;
-                    if (item.quantity <= 0) {
-                        this.removeItem(index);
-                    } else {
-                        this.render();
-                    }
-                    this.game.ui?.showNotification(`Used ${item.name}`, 'success');
-                }
-            }
-        }
-
-        // Update UI after using item
-        if (this.game.ui) {
-            this.game.ui.updatePlayerStats(true);
-        }
     }
 }

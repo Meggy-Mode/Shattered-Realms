@@ -296,21 +296,32 @@ class Game {
 
                 switch(crystal.element) {
                     case 'fire':
+                        console.log(`Fire crystal boosting strength from ${this.strength} by ${boost}`);
                         this.strength += boost;
+                        console.log(`New strength: ${this.strength}`);
                         return true;
                     case 'ice':
+                        console.log(`Ice crystal boosting intelligence from ${this.intelligence} by ${boost}`);
                         this.intelligence += boost;
+                        console.log(`New intelligence: ${this.intelligence}`);
                         return true;
                     case 'nature':
+                        console.log(`Nature crystal boosting health from ${this.health} by ${boost * 2}`);
                         this.health = Math.min(100, this.health + boost * 2);
+                        console.log(`New health: ${this.health}`);
                         return true;
                     case 'arcane':
+                        console.log(`Arcane crystal boosting mana from ${this.mana} by ${boost * 2}`);
                         this.mana = Math.min(100, this.mana + boost * 2);
+                        console.log(`New mana: ${this.mana}`);
                         return true;
                     case 'void':
+                        console.log(`Void crystal boosting dexterity from ${this.dexterity} by ${boost}`);
                         this.dexterity += boost;
+                        console.log(`New dexterity: ${this.dexterity}`);
                         return true;
                     default:
+                        console.warn('Unknown crystal element:', crystal.element);
                         return false;
                 }
             }
