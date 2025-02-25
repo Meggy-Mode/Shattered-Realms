@@ -91,15 +91,26 @@ class CrystalManager {
         try {
             if (!crystal || crystal.collected) return;
 
+            console.log('Collecting crystal:', crystal);
+
             // Add to inventory if it exists
             if (this.game.player.inventory) {
-                this.game.player.inventory.addItem({
+                const crystalItem = {
                     type: 'echo_crystal',
                     name: `${crystal.element.charAt(0).toUpperCase() + crystal.element.slice(1)} Echo Crystal`,
                     element: crystal.element,
                     power: crystal.power,
                     quantity: 1
-                });
+                };
+                console.log('Adding crystal to inventory:', crystalItem);
+                const added = this.game.player.inventory.addItem(crystalItem);
+                if (!added) {
+                    console.error('Failed to add crystal to inventory');
+                    return;
+                }
+            } else {
+                console.error('Player inventory not initialized');
+                return;
             }
 
             // Trigger immediate UI update
