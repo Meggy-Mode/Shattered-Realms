@@ -7,10 +7,6 @@ main = Blueprint('main', __name__)
 def index():
     return render_template('index.html')
 
-@main.route('/game')
-def game():
-    return render_template('game.html')
-
 @main.route('/save', methods=['POST'])
 def save_game():
     data = request.json
@@ -19,7 +15,7 @@ def save_game():
         inventory=data['inventory'],
         quest_progress=data['questProgress'],
         faction_standings=data['factionStandings'],
-        echo_crystals=data.get('echoCrystals', [])
+        echo_crystals=data.get('echoCrystals', [])  # Add echo crystals to save data
     )
     db.session.add(game_state)
     db.session.commit()
@@ -34,6 +30,6 @@ def load_game():
             'inventory': game_state.inventory,
             'questProgress': game_state.quest_progress,
             'factionStandings': game_state.faction_standings,
-            'echoCrystals': game_state.echo_crystals
+            'echoCrystals': game_state.echo_crystals  # Add echo crystals to load data
         })
     return jsonify({})
