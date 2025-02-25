@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shattered Realms</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <style>
+        #gameCanvas {
+            width: 100%;
+            height: 100vh;
+            display: block;
+        }
+        .game-ui {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 300px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        .game-notification {
+            z-index: 1000;
+            opacity: 1;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .game-notification.fade-out {
+            opacity: 0;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+        .stat-item {
+            text-align: center;
+            padding: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body class="bg-dark">
+    <canvas id="gameCanvas"></canvas>
+    <div class="game-ui">
+        <div class="card bg-dark text-light mb-3">
+            <div class="card-header">Player Stats</div>
+            <div class="card-body" id="playerStats">
+                <!-- Player stats will be populated by JS -->
+            </div>
+        </div>
+        
+        <div class="card bg-dark text-light mb-3">
+            <div class="card-header">Active Quests</div>
+            <div class="card-body" id="questLog">
+                <!-- Quest log will be populated by JS -->
+            </div>
+        </div>
+        
+        <div class="card bg-dark text-light">
+            <div class="card-header">Faction Status</div>
+            <div class="card-body" id="factionStatus">
+                <!-- Faction status will be populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/tone@14.7.77/build/Tone.min.js"></script>
+    <script type="module" src="{{ url_for('static', filename='js/game.js') }}"></script>
+</body>
+</html>

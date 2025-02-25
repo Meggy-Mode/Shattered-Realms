@@ -3,34 +3,10 @@
 {% block content %}
 <div class="container-fluid game-container">
     <div class="row">
-        <div class="col-md-9">
-            <canvas id="gameCanvas"></canvas>
-        </div>
-        <div class="col-md-3">
-            <div class="card mb-3">
-                <div class="card-header">Character</div>
-                <div class="card-body">
-                    <div id="playerStats"><span id="hp"></span><span id="mana"></span><span id="lvl"></span><span id="str"></span><span id="int"></span><span id="dex"></span></div>
-                </div>
-            </div>
-            <div class="card mb-3">
-                <div class="card-header">Inventory</div>
-                <div class="card-body">
-                    <div id="inventory"></div>
-                </div>
-            </div>
-            <div class="card mb-3">
-                <div class="card-header">Quests</div>
-                <div class="card-body">
-                    <div id="questLog"></div>
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-header">Faction Standing</div>
-                <div class="card-body">
-                    <div id="factionStatus"></div>
-                </div>
-            </div>
+        <div class="col-md-12 text-center mt-5">
+            <h1>Welcome to Shattered Realms</h1>
+            <p class="lead">An immersive RPG set in a world of floating islands and magical combat</p>
+            <a href="{{ url_for('main.game') }}" class="btn btn-primary btn-lg mt-3">Enter Game</a>
         </div>
     </div>
 </div>

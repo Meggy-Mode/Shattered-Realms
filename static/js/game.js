@@ -232,7 +232,11 @@ class Game {
         this.crystalManager = new CrystalManager(this);
         this.ui = new GameUI(this);
         this.lastFrameTime = 0;
-        this.lastCrystalUpdate = 0; // Added to track crystal update timing
+        this.lastCrystalUpdate = 0;
+
+        // Update UI on significant game state changes
+        this.lastUIUpdate = 0;
+        const UI_UPDATE_INTERVAL = 100; // Update UI every 100ms max
 
         this.setupControls();
         this.setupAudio();
@@ -436,7 +440,6 @@ class Game {
 
     gameLoop(timestamp) {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        
 
         // Use transform for background
         this.ctx.save();
@@ -467,7 +470,7 @@ class Game {
         this.lastFrameTime = timestamp;
 
         requestAnimationFrame((timestamp) => this.gameLoop(timestamp));
-        
+
     }
 }
 

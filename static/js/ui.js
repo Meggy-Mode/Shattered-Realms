@@ -2,8 +2,10 @@ export class GameUI {
     constructor(game) {
         this.game = game;
         this.cachedValues = {};
-        this.setupEventListeners();
         this.cacheElements();
+        this.setupEventListeners();
+        // Initialize UI with starting values
+        this.initializeUI();
     }
 
     cacheElements() {
@@ -22,15 +24,22 @@ export class GameUI {
         }
     }
 
+    initializeUI() {
+        // Force initial update of all UI elements
+        this.updatePlayerStats();
+        this.updateQuestLog();
+        this.updateFactionStatus();
+    }
+
     shouldUpdate(key, newValue) {
-        if (JSON.stringify(this.cachedValues[key]) !== JSON.stringify(newValue)) {
-            this.cachedValues[key] = newValue;
+        const currentValue = this.cachedValues[key];
+        if (!currentValue || JSON.stringify(currentValue) !== JSON.stringify(newValue)) {
+            this.cachedValues[key] = JSON.parse(JSON.stringify(newValue)); // Deep copy
             return true;
         }
         return false;
     }
 
-    // Update methods now only run when explicitly called by game events
     updatePlayerStats() {
         const newStats = {
             level: this.game.player.level,
@@ -48,7 +57,7 @@ export class GameUI {
 
         const statsHtml = `
             <div class="card-text mb-3">
-                <h5 class="mb-2">Level ${newStats.level}</h5>
+                <h5 class="mb-2">Level ${newStats.level} ${newStats.class}</h5>
                 <div class="progress mb-2">
                     <div class="progress-bar bg-success" 
                          role="progressbar" 
@@ -100,20 +109,26 @@ export class GameUI {
 
     updateQuestLog() {
         const questData = {
-            progress: 0
+            activeQuests: [{
+                title: 'The Echo Crystal',
+                description: 'Find the first Echo Crystal in the Ember Wastes',
+                progress: 0
+            }]
         };
 
         if (!this.shouldUpdate('questLog', questData)) return;
 
         const questHtml = `
             <div class="list-group">
-                <div class="list-group-item">
-                    <h5 class="mb-1">Main Quest: The Echo Crystal</h5>
-                    <small>Find the first Echo Crystal in the Ember Wastes</small>
-                    <div class="progress mt-2" style="height: 5px;">
-                        <div class="progress-bar" role="progressbar" style="width: ${questData.progress}%"></div>
+                ${questData.activeQuests.map(quest => `
+                    <div class="list-group-item">
+                        <h5 class="mb-1">${quest.title}</h5>
+                        <small>${quest.description}</small>
+                        <div class="progress mt-2" style="height: 5px;">
+                            <div class="progress-bar" role="progressbar" style="width: ${quest.progress}%"></div>
+                        </div>
                     </div>
-                </div>
+                `).join('')}
             </div>
         `;
 
