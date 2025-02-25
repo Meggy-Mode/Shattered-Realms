@@ -124,6 +124,8 @@ export class InventorySystem {
 
     useItem(index) {
         const item = this.items[index];
+        if (!item) return;
+
         if (item.type === 'echo_crystal') {
             // Echo crystal effects
             if (this.game.player.useEchoCrystal) {
@@ -135,21 +137,14 @@ export class InventorySystem {
                     } else {
                         this.render();
                     }
+                    this.game.ui?.showNotification(`Used ${item.name}`, 'success');
                 }
             }
-        } else if (item.type === 'consumable') {
-            if (item.effect === 'health') {
-                this.game.player.health += item.value;
-            } else if (item.effect === 'mana') {
-                this.game.player.mana += item.value;
-            }
+        }
 
-            item.quantity--;
-            if (item.quantity <= 0) {
-                this.removeItem(index);
-            } else {
-                this.render();
-            }
+        // Update UI after using item
+        if (this.game.ui) {
+            this.game.ui.updatePlayerStats(true);
         }
     }
 }
