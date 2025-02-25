@@ -5,7 +5,7 @@ class CrystalManager {
         this.lastSpawnTime = Date.now();
         this.spawnInterval = 10000; 
         this.elements = ['fire', 'ice', 'nature', 'arcane', 'void'];
-        this.isCollecting = false; // Lock for collection process
+        this.isCollecting = false;
     }
 
     generateCrystal(x, y) {
@@ -89,58 +89,59 @@ class CrystalManager {
 
     async collectCrystal(crystal) {
         try {
-            if (!crystal || crystal.collected) return;
+            if (!crystal || crystal.collected) {
+                console.log('Crystal already collected or invalid');
+                return;
+            }
 
             console.log('Collecting crystal:', crystal);
 
-            // Add to inventory if it exists
-            if (this.game.player.inventory) {
-                const crystalItem = {
-                    type: 'echo_crystal',
-                    name: `${crystal.element.charAt(0).toUpperCase() + crystal.element.slice(1)} Echo Crystal`,
-                    element: crystal.element,
-                    power: crystal.power,
-                    quantity: 1
-                };
-                console.log('Adding crystal to inventory:', crystalItem);
-                const added = this.game.player.inventory.addItem(crystalItem);
-                if (!added) {
-                    console.error('Failed to add crystal to inventory');
-                    return;
-                }
-            } else {
+            if (!this.game.player.inventory) {
                 console.error('Player inventory not initialized');
                 return;
             }
 
-            // Trigger immediate UI update
-            if (this.game.ui) {
-                this.game.ui.updatePlayerStats(true); // Force update
-            }
+            const crystalItem = {
+                type: 'echo_crystal',
+                name: `${crystal.element.charAt(0).toUpperCase() + crystal.element.slice(1)} Echo Crystal`,
+                element: crystal.element,
+                power: crystal.power,
+                quantity: 1
+            };
 
-            // Play collection sound with proper error handling
+            console.log('Adding crystal to inventory:', crystalItem);
+
             try {
-                // Play different notes based on crystal element
-                let note = 'C4';
-                switch(crystal.element) {
-                    case 'fire': note = 'C4'; break;
-                    case 'ice': note = 'E4'; break;
-                    case 'nature': note = 'G4'; break;
-                    case 'arcane': note = 'B4'; break;
-                    case 'void': note = 'C2'; break;
-                    default: note = 'C4';
-                }
-                this.game.synth.triggerAttackRelease(note, "8n");
-            } catch (soundError) {
-                console.error('Error playing crystal collection sound:', soundError);
-            }
+                const added = this.game.player.inventory.addItem(crystalItem);
+                if (added) {
+                    console.log('Crystal added successfully');
+                    crystal.collected = true;
 
-            // Show notification if UI is initialized
-            if (this.game.ui) {
-                this.game.ui.showNotification(`Collected ${crystal.element} crystal!`, 'success');
+                    // Play collection sound
+                    try {
+                        let note = 'C4';
+                        switch(crystal.element) {
+                            case 'fire': note = 'C4'; break;
+                            case 'ice': note = 'E4'; break;
+                            case 'nature': note = 'G4'; break;
+                            case 'arcane': note = 'B4'; break;
+                            case 'void': note = 'C2'; break;
+                        }
+                        this.game.synth.triggerAttackRelease(note, "8n");
+                    } catch (soundError) {
+                        console.error('Error playing crystal collection sound:', soundError);
+                    }
+
+                    this.game.ui?.showNotification(`Collected ${crystal.element} crystal!`, 'success');
+                    this.game.ui?.updatePlayerStats(true);
+                } else {
+                    console.error('Failed to add crystal to inventory');
+                }
+            } catch (addError) {
+                console.error('Error adding crystal to inventory:', addError);
             }
         } catch (error) {
-            console.error('Error collecting crystal:', error);
+            console.error('Error in collectCrystal:', error);
         }
     }
 
@@ -212,12 +213,15 @@ class Game {
 
     async initializeGame() {
         try {
+            // Initialize in correct order
             await this.initializeGameWorld();
+            await this.setupAudio();
             this.setupGameSystems();
-            this.setupAudio(); // Moved this line here
             this.setupEventHandlers();
+
             // Start the game loop only after initialization is complete
             this.gameLoop(0);
+            console.log('Game initialized successfully');
         } catch (error) {
             console.error('Failed to initialize game:', error);
             this.ui?.showNotification('Failed to initialize game', 'error');
@@ -292,14 +296,18 @@ class Game {
     }
 
     setupGameSystems() {
-        // Initialize inventory first since UI depends on it
-        this.player.inventory = new InventorySystem(this);
+        console.log('Setting up game systems...');
 
-        // Initialize crystal manager
-        this.crystalManager = new CrystalManager(this);
-
-        // Initialize UI last to ensure all dependencies are available
+        // Initialize UI first
         this.ui = new GameUI(this);
+
+        // Initialize inventory before crystal manager
+        this.player.inventory = new InventorySystem(this);
+        console.log('Inventory system initialized:', this.player.inventory);
+
+        // Initialize crystal manager last
+        this.crystalManager = new CrystalManager(this);
+        console.log('Crystal manager initialized');
 
         this.lastFrameTime = 0;
         this.lastCrystalUpdate = 0;

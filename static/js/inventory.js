@@ -47,7 +47,13 @@ export class InventorySystem {
             }
         }
 
-        this.items.push({...item, quantity: item.quantity || 1});
+        // Deep clone the item to prevent reference issues
+        const newItem = {
+            ...item,
+            quantity: item.quantity || 1
+        };
+
+        this.items.push(newItem);
         console.log('Current inventory items:', this.items);
         this.render();
         return true;
