@@ -446,9 +446,9 @@ class Game {
         // Batch movement updates
         this.updatePlayerMovement();
 
-        // Set camera position directly without smoothing
-        this.camera.x = this.player.x - this.canvas.width / 2;
-        this.camera.y = this.player.y - this.canvas.height / 2;
+        // Set camera position directly without smoothing, but round to reduce jitter
+        this.camera.x = Math.round(this.player.x - this.canvas.width / 2);
+        this.camera.y = Math.round(this.player.y - this.canvas.height / 2);
 
         // Update crystals on significant movement only
         if (timestamp - (this.lastCrystalUpdate || 0) > 100) {
@@ -458,7 +458,7 @@ class Game {
 
         // Use transform for all game objects
         this.ctx.save();
-        this.ctx.translate(-Math.round(this.camera.x), -Math.round(this.camera.y)); // Round for pixel-perfect rendering
+        this.ctx.translate(-this.camera.x, -this.camera.y); // Apply rounded camera position
 
         this.drawIslands();
         this.crystalManager.draw(this.ctx);
@@ -476,7 +476,6 @@ class Game {
 //Import statements added here.  Paths may need adjustment depending on your project structure.
 import { InventorySystem } from './inventory.js';
 import { GameUI } from './ui.js';
-
 
 
 window.addEventListener('load', () => {
