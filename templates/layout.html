@@ -79,6 +79,34 @@
         small {
             color: #cccccc;
         }
+        .inventory-list {
+            max-height: 300px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.2) rgba(33, 37, 41, 0.95);
+        }
+        .inventory-list::-webkit-scrollbar {
+            width: 8px;
+        }
+        .inventory-list::-webkit-scrollbar-track {
+            background: rgba(33, 37, 41, 0.95);
+        }
+        .inventory-list::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 0.2);
+            border-radius: 4px;
+        }
+        .echo-crystal {
+            transition: background-color 0.2s ease;
+        }
+        .echo-crystal:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+        }
+        .echo-crystal.crystal-fire { border-left: 3px solid #ff4d4d; }
+        .echo-crystal.crystal-ice { border-left: 3px solid #4d4dff; }
+        .echo-crystal.crystal-nature { border-left: 3px solid #4dff4d; }
+        .echo-crystal.crystal-arcane { border-left: 3px solid #ff4dff; }
+        .echo-crystal.crystal-void { border-left: 3px solid #4d4d4d; }
     </style>
 </head>
 <body class="bg-dark text-light">

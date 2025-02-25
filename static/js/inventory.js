@@ -34,8 +34,8 @@ export class InventorySystem {
         // Special handling for echo crystals
         if (item.type === 'echo_crystal') {
             console.log('Processing echo crystal:', item);
-            const existingCrystal = this.items.find(i => 
-                i.type === 'echo_crystal' && 
+            const existingCrystal = this.items.find(i =>
+                i.type === 'echo_crystal' &&
                 i.element === item.element &&
                 i.power === item.power
             );
@@ -88,7 +88,14 @@ export class InventorySystem {
             emptyMessage.textContent = 'Inventory is empty';
             itemList.appendChild(emptyMessage);
         } else {
-            this.items.forEach((item, index) => {
+            // Sort items by type and element
+            const sortedItems = [...this.items].sort((a, b) => {
+                if (a.type !== b.type) return a.type.localeCompare(b.type);
+                if (a.element && b.element) return a.element.localeCompare(b.element);
+                return 0;
+            });
+
+            sortedItems.forEach((item, index) => {
                 const itemElement = document.createElement('li');
                 itemElement.className = 'list-group-item d-flex justify-content-between align-items-center';
 
@@ -99,7 +106,7 @@ export class InventorySystem {
                         <div class="d-flex align-items-center">
                             <i class="fas fa-gem me-2"></i>
                             ${item.name}
-                            <span class="badge bg-secondary ms-2">Power: ${item.power || 1}</span>
+                            <span class="badge bg-secondary ms-2">Power: ${item.power}</span>
                         </div>
                         <span class="badge bg-primary rounded-pill">×${item.quantity}</span>
                     `;
