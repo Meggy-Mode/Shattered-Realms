@@ -177,7 +177,7 @@ class CrystalManager {
                 const screenY = crystal.y - this.game.camera.y;
 
                 // Draw crystal glow
-                let glowSize = 15 + Math.sin(crystal.pulsePhase) * 5;
+                const glowSize = 15 + Math.sin(crystal.pulsePhase) * 5;
                 const gradient = ctx.createRadialGradient(
                     screenX, screenY, 0,
                     screenX, screenY, glowSize
@@ -186,15 +186,16 @@ class CrystalManager {
                 // Set gradient colors based on element
                 let colors;
                 switch (crystal.element) {
-                    case 'fire': colors = ['#ff8a00', '#ff0000']; break;
-                    case 'ice': colors = ['#00c6ff', '#0072ff']; break;
-                    case 'nature': colors = ['#00ff87', '#60efff']; break;
-                    case 'arcane': colors = ['#da22ff', '#9733ee']; break;
-                    case 'void': colors = ['#141e30', '#243b55']; break;
+                    case 'fire': colors = ['#ff8a00', '#ff4d00', '#ff0000']; break;
+                    case 'ice': colors = ['#00c6ff', '#0099ff', '#0072ff']; break;
+                    case 'nature': colors = ['#00ff87', '#00cc87', '#00ae87']; break;
+                    case 'arcane': colors = ['#da22ff', '#b82aff', '#9733ee']; break;
+                    case 'void': colors = ['#141e30', '#1c2840', '#243b55']; break;
                 }
 
-                gradient.addColorStop(0, colors[0] + '88');
-                gradient.addColorStop(1, colors[1] + '00');
+                gradient.addColorStop(0, colors[0] + 'aa');    // More opaque inner glow
+                gradient.addColorStop(0.6, colors[1] + '66');  // Semi-transparent middle
+                gradient.addColorStop(1, colors[2] + '00');    // Fully transparent outer edge
 
                 ctx.fillStyle = gradient;
                 ctx.beginPath();
@@ -203,7 +204,7 @@ class CrystalManager {
 
                 // Draw crystal
                 ctx.fillStyle = colors[0];
-                ctx.strokeStyle = colors[1];
+                ctx.strokeStyle = colors[2];
                 ctx.lineWidth = 2;
                 ctx.beginPath();
                 ctx.moveTo(screenX, screenY - 10);
