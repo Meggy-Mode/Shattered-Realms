@@ -4,18 +4,25 @@ class CrystalManager {
         this.crystals = [];
         this.lastSpawnTime = Date.now();
         this.spawnInterval = 1000;
-        this.elements = ['fire', 'ice', 'nature', 'arcane', 'void'];
+        this.elements = [
+            'fire', 'fire', 'fire', 'fire', 'fire',
+            'ice', 'ice', 'ice', 'ice', 'ice',
+            'nature', 'nature', 'nature', 'nature', 'nature',
+            'arcane', 'arcane', 'arcane', 'arcane', 'arcane',
+            'void', 'void', 'void', 'void', 'void',
+            'echo'
+        ];
         this.chance = [
             1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
             2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
             3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
             4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-            5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
+            5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
             6, 6, 6, 6, 6, 6, 6, 6, 6,
             7, 7, 7, 7, 7, 7, 7, 7,
-            8, 8, 8, 8, 8, 8, 8, 8,
-            9, 9, 9, 9, 9, 9, 9, 9,
-            10, 10, 10, 10,
+            8, 8, 8, 8, 8, 8, 8,
+            9, 9, 9, 9, 9, 9,
+            10, 10, 10,
             15
         ];
 
@@ -129,7 +136,7 @@ class CrystalManager {
 
             const crystalItem = {
                 type: 'echo_crystal',
-                name: `${crystal.element.charAt(0).toUpperCase() + crystal.element.slice(1)} Echo Crystal`,
+                name: `${crystal.element.charAt(0).toUpperCase() + crystal.element.slice(1)} Crystal`,
                 element: crystal.element,
                 power: crystal.power,
                 quantity: 1
@@ -149,7 +156,8 @@ class CrystalManager {
                         'ice': 'E4',
                         'nature': 'G4',
                         'arcane': 'B4',
-                        'void': 'C2'
+                        'void': 'C2',
+                        'echo': 'D4'  // Added echo crystal sound
                     }[crystal.element] || 'C4';
 
                     await this.game.synth.triggerAttackRelease(note, "8n");
@@ -186,16 +194,17 @@ class CrystalManager {
                 // Set gradient colors based on element
                 let colors;
                 switch (crystal.element) {
-                    case 'fire': colors = ['#ff8a00', '#ff4d00', '#ff0000']; break;
-                    case 'ice': colors = ['#00c6ff', '#0099ff', '#0072ff']; break;
-                    case 'nature': colors = ['#00ff87', '#00cc87', '#00ae87']; break;
-                    case 'arcane': colors = ['#da22ff', '#b82aff', '#9733ee']; break;
-                    case 'void': colors = ['#141e30', '#1c2840', '#243b55']; break;
+                    case 'fire': colors = ['#ff8a00', '#ff0000']; break;
+                    case 'ice': colors = ['#00c6ff', '#0072ff']; break;
+                    case 'nature': colors = ['#00ff87', '#00ae87']; break;
+                    case 'arcane': colors = ['#da22ff', '#9733ee']; break;
+                    case 'void': colors = ['#141e30', '#243b55']; break;
+                    case 'echo': colors = ['#238082', '#657ba8']; break;
                 }
 
-                gradient.addColorStop(0, colors[0] + 'aa');    // More opaque inner glow
-                gradient.addColorStop(0.6, colors[1] + '66');  // Semi-transparent middle
-                gradient.addColorStop(1, colors[2] + '00');    // Fully transparent outer edge
+                gradient.addColorStop(0, colors[0] + 'cc');    // Inner glow (more opaque)
+                gradient.addColorStop(0.5, colors[0] + '44'); // Middle glow (semi-transparent)
+                gradient.addColorStop(1, colors[1] + '00');    // Outer edge (fully transparent)
 
                 ctx.fillStyle = gradient;
                 ctx.beginPath();
@@ -204,7 +213,7 @@ class CrystalManager {
 
                 // Draw crystal
                 ctx.fillStyle = colors[0];
-                ctx.strokeStyle = colors[2];
+                ctx.strokeStyle = colors[1];
                 ctx.lineWidth = 2;
                 ctx.beginPath();
                 ctx.moveTo(screenX, screenY - 10);
@@ -580,6 +589,10 @@ class Game {
             } else if (island.type === "crystal") {
                 this.ctx.fillStyle = '#634f76';
                 this.ctx.strokeStyle = '#a6a6aa';
+            } else {
+                console.log("No color");
+                this.ctx.fillStyle = '#134d15';
+                this.ctx.strokeStyle = '#90aa90';
             }
 
             // Draw the island
@@ -604,6 +617,7 @@ class Game {
     }
 
     gameLoop(timestamp) {
+        
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
         // Use transform for background
@@ -650,7 +664,8 @@ class Game {
 //Import statements added here.  Paths may need adjustment depending on your project structure.
 import { InventorySystem } from './inventory.js';
 import { GameUI } from './ui.js';
-
+import { TestWindow } from './TestWindow';
+const testWindow = new TestWindow();
 
 window.addEventListener('load', async () => {
     const game = new Game();
