@@ -265,7 +265,7 @@ class Player {
             size: 20,
             velocity: { x: 0, y: 0 },
             maxSpeed: 10,
-            acceleration: 0.8,
+            acceleration: 0.8, 
             friction: 0.85,
             gravity: 0.2,
             jumpForce: -8,
