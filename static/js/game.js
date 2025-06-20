@@ -1,3 +1,11 @@
+let canvas = document.getElementById('gameCanvas');
+let ctx = canvas.getContext('2d');
+if (!ctx) {
+    console.error("Canvas context could not be initialized.");
+} else { console.log("initialized canvas") }
+
+
+
 class CrystalManager {
     constructor(game) {
         this.game = game;
@@ -67,8 +75,8 @@ class CrystalManager {
         this.crystals = this.crystals.filter(crystal => !crystal.collected);
 
         // Spawn new crystals on crystal platforms
-        if (this.game.islands) {
-            this.game.islands.forEach(island => {
+        if (game.islands) {
+            game.islands.forEach(island => {
                 if (island.type === 'crystal' && this.crystals.length < 10) {
                     const crystalX = island.x + Math.random() * (island.width - 20);
                     const crystalY = island.y - 30; // Float above the platform
@@ -90,8 +98,8 @@ class CrystalManager {
 
         this.crystals.forEach(crystal => {
             if (!crystal.collected) {
-                const dx = this.game.player.x - crystal.x;
-                const dy = this.game.player.y - crystal.y;
+                const dx = player.player.x - crystal.x;
+                const dy = player.player.y - crystal.y;
                 const distance = Math.sqrt(dx * dx + dy * dy);
 
                 if (distance < 40) {
@@ -129,7 +137,7 @@ class CrystalManager {
         console.log('Starting crystal collection:', crystal);
 
         try {
-            if (!this.game.player.inventory) {
+            if (!player.player.inventory) {
                 console.error('Player inventory not initialized!');
                 return;
             }
@@ -143,7 +151,7 @@ class CrystalManager {
             };
 
             console.log('Adding crystal to inventory:', crystalItem);
-            const added = await this.game.player.inventory.addItem(crystalItem);
+            const added = await player.player.inventory.addItem(crystalItem);
 
             if (added) {
                 crystal.collected = true;
@@ -157,16 +165,16 @@ class CrystalManager {
                         'nature': 'G4',
                         'arcane': 'B4',
                         'void': 'C2',
-                        'echo': 'D4'  // Added echo crystal sound
+                        'echo': 'D4'
                     }[crystal.element] || 'C4';
 
-                    await this.game.synth.triggerAttackRelease(note, "8n");
+                    await game.synth.triggerAttackRelease(note, "8n");
                 } catch (soundError) {
                     console.error('Sound error:', soundError);
                 }
 
-                if (this.game.ui) {
-                    this.game.ui.showNotification(`Collected ${crystal.element} crystal!`, 'success');
+                if (game.ui) {
+                    game.ui.showNotification(`Collected ${crystal.element} crystal!`, 'success');
                 }
                 console.log('Crystal collection complete:', crystal.element);
             } else {
@@ -181,8 +189,8 @@ class CrystalManager {
     draw(ctx) {
         this.crystals.forEach(crystal => {
             if (!crystal.collected) {
-                const screenX = crystal.x - this.game.camera.x;
-                const screenY = crystal.y - this.game.camera.y;
+                const screenX = crystal.x - player.camera.x;
+                const screenY = crystal.y - player.camera.y;
 
                 // Draw crystal glow
                 const glowSize = 15 + Math.sin(crystal.pulsePhase) * 5;
@@ -228,63 +236,17 @@ class CrystalManager {
     }
 }
 
-class Game {
+class Player {
     constructor() {
-        this.canvas = document.getElementById('gameCanvas');
-        this.ctx = this.canvas.getContext('2d');
-
+        this.dashing = false;
         // Set proper canvas dimensions
-        this.canvas.width = this.canvas.offsetWidth;
-        this.canvas.height = this.canvas.offsetHeight;
-
-        // Initialize islands as empty array to prevent "not iterable" errors
-        this.islands = [];
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
 
         this.initializeGameState();
 
-        // Initialize game asynchronously
-        this.initializeGame();
     }
 
-    async initializeGame() {
-        try {
-            // Initialize in correct order
-            await this.initializeGameWorld();
-            this.setupAudio();
-            this.setupGameSystems();
-            this.setupEventHandlers();
-
-            // Start the game loop only after initialization is complete
-            this.gameLoop(0);
-            console.log('Game initialized successfully');
-        } catch (error) {
-            console.error('Failed to initialize game:', error);
-            this.ui?.showNotification('Failed to initialize game', 'error');
-        }
-    }
-
-    async loadIslands() {
-        try {
-            const response = await fetch('/static/data/islands.json');
-            if (!response.ok) {
-                throw new Error('Failed to load islands data');
-            }
-            const data = await response.json();
-            this.islands = data.islands.map(island => ({
-                ...island,
-                // Adjust coordinates relative to canvas center
-                x: island.x + this.canvas.width / 2,
-                y: island.y + this.canvas.height / 2,
-                // Ensure default values for new properties
-                texture: island.texture || 'default',
-                passThrough: island.passThrough || false
-            }));
-        } catch (error) {
-            console.error('Error loading islands:', error);
-            this.islands = []; // Initialize empty array instead of hardcoding fallback
-            this.ui.showNotification('Error loading game world', 'error');
-        }
-    }
 
 
     initializeGameState() {
@@ -296,9 +258,11 @@ class Game {
             smoothing: 0.1
         };
 
+
         this.player = {
-            x: this.canvas.width / 2,
-            y: this.canvas.height / 2,
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            size: 20,
             velocity: { x: 0, y: 0 },
             maxSpeed: 10,
             acceleration: 0.8,
@@ -306,7 +270,9 @@ class Game {
             gravity: 0.2,
             jumpForce: -8,
             isGrounded: false,
-            inventory: null, // Will be initialized in setupGameSystems
+            airJump: false,
+            jumps: 0,
+            inventory: null,
             health: 100,
             mana: 100,
             level: 1,
@@ -317,7 +283,6 @@ class Game {
             dexterity: 10,
             class: 'Seeker',
 
-            // Add method to use crystals
             useEchoCrystal: function(crystal) {
                 console.log('Using crystal:', crystal);
                 const boost = crystal.power;
@@ -363,9 +328,6 @@ class Game {
         };
     }
 
-    async initializeGameWorld() {
-        await this.loadIslands();
-    }
 
     setupGameSystems() {
         console.log('Setting up game systems...');
@@ -389,8 +351,8 @@ class Game {
         this.setupControls();
 
         window.addEventListener('resize', () => {
-            this.canvas.width = this.canvas.offsetWidth;
-            this.canvas.height = this.canvas.offsetHeight;
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
         });
     }
 
@@ -404,38 +366,67 @@ class Game {
                     this.gliding('on')
                 }
             }
-            if (e.key === 'ArrowUp' || e.key === 'w') {
+            if (e.key.toLowerCase() === 'w') {
+                if (!this.player.isGrounded) {
+                    this.player.airJump = true;
+                }
                 this.moveState.up = true;
                 if (this.player.isGrounded) {
                     this.player.velocity.y = this.player.jumpForce;
                     this.player.isGrounded = false;
                 }
+                if (this.player.airJump && this.player.jumps < 1) {
+                    this.player.velocity.y = this.player.jumpForce / 1.2;
+                    this.player.isGrounded = false;
+                    this.player.jumps++
+                }
+                console.log("Jumps:", this.player.jumps, "Air jump:", this.player.airJump, "Grounded:", this.player.isGrounded)
+
+
+
             }
-            if (e.key === 'ArrowDown' || e.key === 's') {
+
+            if (e.key === 's') {
                 this.moveState.down = true;
             }
-            if (e.key === 'ArrowLeft' || e.key === 'a') {
+            if (e.key === 'a') {
                 this.moveState.left = true;
             }
-            if (e.key === 'ArrowRight' || e.key === 'd') {
+            if (e.key === 'd') {
                 this.moveState.right = true;
+            }
+            if (e.shiftKey) {
+                if (e.key === 'A') {
+                    this.dash(10, 1, "l")
+
+                }
+                else if (e.key === 'D') {
+                    this.dash(10, 1, "r")
+
+                }
+            }
+            if (e.key === 'k') {
+
             }
         });
 
         window.addEventListener('keyup', (e) => {
-            if (e.key === 'ArrowUp' || e.key === 'w') {
+            if (e.key === 'w') {
                 this.moveState.up = false;
             }
-            if (e.key === 'ArrowDown' || e.key === 's') {
+            if (e.key === 's') {
                 this.moveState.down = false;
             }
-            if (e.key === 'ArrowLeft' || e.key === 'a') {
+            if (e.key === 'a') {
                 this.moveState.left = false;
             }
-            if (e.key === 'ArrowRight' || e.key === 'd') {
+            if (e.key === 'd') {
                 this.moveState.right = false;
             }
         });
+    }
+    attack(obj1, obj2, radius) {
+
     }
 
     gliding(toggle) {
@@ -445,6 +436,29 @@ class Game {
             this.player.gravity = 0.2
         }
     }
+    dash(p, gravityCurve, direction) {
+        this.dashing = true;
+        this.player.maxSpeed = Infinity
+        gravityCurve /= 10;
+        this.player.friction = p / 10
+
+        this.player.gravity = gravityCurve;
+        if (direction === "r") {
+            this.player.velocity.x = p
+        }
+        if (direction === "l") {
+            this.player.velocity.x = p * -1
+        }
+
+        setTimeout
+        setTimeout(() => {
+            this.player.friction = 0.85;
+            this.player.maxSpeed = 10;
+            this.dashing = false;
+        }, p * 20);
+
+    }
+
 
     updatePlayerMovement() {
         if (!this.player.isGrounded) {
@@ -460,10 +474,16 @@ class Game {
         if (this.player.isGrounded) {
             this.player.velocity.x *= this.player.friction;
             this.player.maxSpeed = 8;
+            this.player.airJump = false;
+            this.player.jumps = 0
+            this.player.gravity = 0.2;
             this.gliding('off');
-        } else {
-            this.player.velocity.x *= 0.90;
+        } else if (!this.dashing) {
+            this.player.velocity.x *= this.player.friction + 0.05;
             this.player.maxSpeed = 5;
+        } else if (this.dashing) {
+            this.player.velocity.x *= this.player.friction + 0.05;
+            this.player.maxSpeed = Infinity;
         }
 
         this.player.velocity.x = Math.max(-this.player.maxSpeed,
@@ -481,7 +501,7 @@ class Game {
 
         this.player.isGrounded = this.checkGrounded();
 
-        for (const island of this.islands) {
+        for (const island of game.islands) {
             if (this.checkCollisionWithIsland(island)) {
                 const fromTop = oldY + 20 <= island.y;
                 const fromBottom = oldY - 20 >= island.y + island.height;
@@ -505,9 +525,9 @@ class Game {
             }
         }
 
-        if (this.player.y > this.canvas.height * 1.5) {
-            this.player.y = this.canvas.height / 2;
-            this.player.x = this.canvas.width / 2;
+        if (this.player.y > canvas.height * 1.5) {
+            this.player.y = canvas.height / 2;
+            this.player.x = canvas.width / 2;
             this.player.velocity.x = 0;
             this.player.velocity.y = 0;
             this.player.isGrounded = true;
@@ -515,7 +535,7 @@ class Game {
     }
 
     checkGrounded() {
-        for (const island of this.islands) {
+        for (const island of game.islands) {
             if (
                 this.player.x + 20 > island.x &&
                 this.player.x - 20 < island.x + island.width &&
@@ -529,9 +549,8 @@ class Game {
     }
 
     checkCollisionWithIsland(island) {
-        // If the island is pass-through, only check for collision from above
         if (island.passThrough) {
-            return false; // Always pass through
+            return false;
         }
 
         return this.player.x + 20 > island.x &&
@@ -539,6 +558,88 @@ class Game {
             this.player.y + 20 > island.y &&
             this.player.y - 20 < island.y + island.height;
     }
+
+    drawPlayer() {
+        const screenX = this.player.x - this.camera.x;
+        const screenY = this.player.y - this.camera.y;
+
+        ctx.fillStyle = '#48bb78';
+        ctx.beginPath();
+        ctx.arc(screenX, screenY, player.player.size, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = '#2f855a';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        //console.log("Drawing player at:", player.player.x, player.player.y);
+    }
+}
+
+
+const player = new Player();
+
+class Game {
+    constructor() {
+        this.islands = [];
+
+        player.initializeGameState();
+
+        // Initialize game asynchronously
+        this.initializeGame();
+        this.area = 1
+
+    }
+    async loadIslands() {
+        try {
+            const response = await fetch('/static/data/islands.json');
+            if (!response.ok) {
+                throw new Error('Failed to load islands data');
+            }
+            const data = await response.json();
+            this.islands = data.islands.map(island => ({
+                ...island,
+                x: island.x + canvas.width / 2,
+                y: island.y + canvas.height / 2,
+                texture: island.texture || 'default',
+                passThrough: island.passThrough || false
+            }));
+        } catch (error) {
+            console.error('Error loading islands:', error);
+            this.islands = [];
+            this.ui.showNotification('Error loading game world', 'error');
+        }
+        console.log("islands: ", this.islands)
+    }
+    async initializeGame() {
+        try {
+            console.log("Initializing game world...");
+            await this.initializeGameWorld();
+            console.log("Game world initialized.");
+
+            console.log("Setting up audio...");
+            this.setupAudio();
+            console.log("Audio setup complete.");
+
+
+
+
+
+            console.log("Game initializing...");
+            this.gameLoop(0);
+            console.log("Game initialized successfully");
+        } catch (error) {
+            console.error('Failed to initialize game:', error);
+            this.ui?.showNotification('Failed to initialize game', 'error');
+        }
+
+
+    }
+
+    async initializeGameWorld() {
+        await this.loadIslands();
+    }
+
+
 
     setupAudio() {
         try {
@@ -567,106 +668,223 @@ class Game {
     }
 
     updateCamera() {
-        this.camera.targetX = this.player.x - this.canvas.width / 2;
-        this.camera.targetY = this.player.y - this.canvas.height / 2;
+        player.camera.targetX = player.player.x - canvas.width / 2;
+        player.camera.targetY = player.player.y - canvas.height / 2;
 
-        this.camera.x += (this.camera.targetX - this.camera.x) * this.camera.smoothing;
-        this.camera.y += (this.camera.targetY - this.camera.y) * this.camera.smoothing;
+        player.camera.x += (player.camera.targetX - player.camera.x) * player.camera.smoothing;
+        player.camera.y += (player.camera.targetY - player.camera.y) * player.camera.smoothing;
     }
 
     drawIslands() {
         this.islands.forEach(island => {
-            const screenX = island.x - this.camera.x;
-            const screenY = island.y - this.camera.y;
+            const screenX = island.x - player.camera.x;
+            const screenY = island.y - player.camera.y;
 
             // Set fill and stroke styles based on island type
             if (island.type === "stone") {
-                this.ctx.fillStyle = '#4a5568';
-                this.ctx.strokeStyle = '#718096';
+                ctx.fillStyle = '#4a5568';
+                ctx.strokeStyle = '#718096';
             } else if (island.type === "grass") {
-                this.ctx.fillStyle = '#134d15';
-                this.ctx.strokeStyle = '#90aa90';
+                ctx.fillStyle = '#134d15';
+                ctx.strokeStyle = '#90aa90';
             } else if (island.type === "crystal") {
-                this.ctx.fillStyle = '#634f76';
-                this.ctx.strokeStyle = '#a6a6aa';
+                ctx.fillStyle = '#634f76';
+                ctx.strokeStyle = '#a6a6aa';
             } else {
-                console.log("No color");
-                this.ctx.fillStyle = '#134d15';
-                this.ctx.strokeStyle = '#90aa90';
+                ctx.fillStyle = '#134d15';
+                ctx.strokeStyle = '#90aa90';
             }
 
             // Draw the island
-            this.ctx.fillRect(screenX, screenY, island.width, island.height);
-            this.ctx.lineWidth = 2;
-            this.ctx.strokeRect(screenX, screenY, island.width, island.height);
+            ctx.fillRect(screenX, screenY, island.width, island.height);
+            ctx.lineWidth = 2;
+            ctx.strokeRect(screenX, screenY, island.width, island.height);
+            //console.log("Drawing islands:", this.islands.length);
         });
     }
 
-    drawPlayer() {
-        const screenX = this.player.x - this.camera.x;
-        const screenY = this.player.y - this.camera.y;
+    async gameLoop(timestamp) {
+        setTimeout(() => {
 
-        this.ctx.fillStyle = '#48bb78';
-        this.ctx.beginPath();
-        this.ctx.arc(screenX, screenY, 20, 0, Math.PI * 2);
-        this.ctx.fill();
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        this.ctx.strokeStyle = '#2f855a';
-        this.ctx.lineWidth = 3;
-        this.ctx.stroke();
-    }
+            // Use transform for background
+            ctx.save();
+            ctx.fillStyle = '#1a202c';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.restore();
+        }, 10);
 
-    gameLoop(timestamp) {
-        
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-        // Use transform for background
-        this.ctx.save();
-        this.ctx.fillStyle = '#1a202c';
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-        this.ctx.restore();
-
-        // Batch movement updates
-        this.updatePlayerMovement();
+        //Movements
+        player.updatePlayerMovement();
         this.updateCamera();
+        enemy.update();
+
+
 
         // Update crystals on significant movement only
-        if (timestamp - (this.lastCrystalUpdate || 0) > 100) {
-            this.crystalManager.update();
-            this.lastCrystalUpdate = timestamp;
+        if (timestamp - (player.lastCrystalUpdate || 0) > 100) {
+            player.crystalManager.update();
+            player.lastCrystalUpdate = timestamp;
         }
 
-        // Update UI elements more frequently (every frame)
         if (this.ui) {
             this.ui.updatePlayerStats();
-            // Only update quest and faction status less frequently
-            if (timestamp - (this.lastUIUpdate || 0) > 500) {
+            /*if (timestamp - (this.lastUIUpdate || 0) > 500) {
                 this.ui.updateQuestLog();
                 this.ui.updateFactionStatus();
                 this.lastUIUpdate = timestamp;
-            }
+            }*/
         }
-
         // Use transform for all game objects
-        this.ctx.save();
+        ctx.save();
         this.drawIslands();
-        this.crystalManager.draw(this.ctx);
-        this.drawPlayer();
-        this.ctx.restore();
+        player.crystalManager.draw(ctx);
+        player.drawPlayer();
+        ctx.restore();
 
         // Update last frame time for delta calculations
-        this.lastFrameTime = timestamp;
-
+        player.lastFrameTime = timestamp;
         requestAnimationFrame((timestamp) => this.gameLoop(timestamp));
+        enemy.draw()
+
     }
+
 }
 
-//Import statements added here.  Paths may need adjustment depending on your project structure.
 import { InventorySystem } from './inventory.js';
 import { GameUI } from './ui.js';
-import { TestWindow } from './TestWindow';
-const testWindow = new TestWindow();
 
-window.addEventListener('load', async () => {
-    const game = new Game();
-});
+const game = new Game();
+
+window.onload = () => {
+    console.log("Setting up game systems...");
+    player.setupGameSystems();
+    console.log("Game systems setup complete.");
+    console.log("Setting up event handlers...");
+    player.setupEventHandlers();
+    console.log("Event handlers setup complete.");
+};
+
+
+
+
+
+
+
+
+class Enemy {
+    constructor(x, y, health, speed, size, damage) {
+        this.x = x;
+        this.y = y;
+        this.oldX = x; // Store previous position
+        this.oldY = y;
+        this.health = health;
+        this.speed = speed;
+        this.size = size;
+        this.damage = damage
+
+        this.isGrounded = true;
+        this.velocity = { x: 0, y: 0 };
+        
+        // Get enemies
+        fetch('/static/data/enemies.json')
+            .then(response => response.json())
+            .then(data => {
+                let area1Enemies = data.areas[0].area1;
+                console.log(area1Enemies);
+
+                let area2Enemies = data.areas[1].area2;
+                console.log(area2Enemies);
+            })
+            .catch(error => console.error('Error loading the JSON:', error));
+
+    }
+
+    update() {
+        this.oldX = this.x; // Store previous position before movement
+        this.oldY = this.y;
+
+        this.followPlayer();
+        this.applyMovement();
+        this.ccwiEnemy();
+        if (game.area = 1){
+            
+        }
+    }
+
+    followPlayer() {
+        const distance = this.calcDistance(this, player.player)
+
+
+        if (distance[0] > 5) {
+            this.velocity.x = (distance[1] / distance[0]) * this.speed;
+            this.velocity.y = (distance[2] / distance[0]) * this.speed;
+        } else {
+            this.velocity.x = 0;
+            this.velocity.y = 0;
+        }
+        if (this.calcDistance(this, player.player)[0] <= (player.player.size / 2) + (this.size)) {
+
+
+            console.log("attack!")
+        }
+    }
+
+    applyMovement() {
+        this.x += this.velocity.x;
+        this.y += this.velocity.y;
+    }
+
+    draw() {
+        let screenX = this.x - player.camera.x;
+        let screenY = this.y - player.camera.y;
+        ctx.fillStyle = '#ff9999';
+        ctx.strokeStyle = '#aa5555';
+        ctx.fillRect(screenX, screenY, this.size, this.size);
+        ctx.lineWidth = 2;
+        ctx.strokeRect(screenX, screenY, this.size, this.size);
+    }
+
+    checkCollisionWithIsland(island) {
+        return (
+            this.x < island.x + island.width &&
+            this.x + this.size > island.x &&
+            this.y < island.y + island.height &&
+            this.y + this.size > island.y
+        );
+    }
+
+    ccwiEnemy() {
+        for (const island of game.islands) {
+            if (this.checkCollisionWithIsland(island)) {
+                const fromTop = this.oldY + this.size <= island.y;
+                const fromBottom = this.oldY >= island.y + island.height;
+                const fromLeft = this.oldX + this.size <= island.x;
+                const fromRight = this.oldX >= island.x + island.width;
+
+                if (fromTop && this.velocity.y > 0) {
+                    this.y = island.y - this.size;
+                    this.velocity.y = 0;
+                    this.isGrounded = true;
+                } else if (fromBottom && this.velocity.y < 0) {
+                    this.y = island.y + island.height;
+                    this.velocity.y = 0;
+                } else if (fromLeft && this.velocity.x > 0) {
+                    this.x = island.x - this.size;
+                    this.velocity.x = 0;
+                } else if (fromRight && this.velocity.x < 0) {
+                    this.x = island.x + island.width;
+                    this.velocity.x = 0;
+                }
+            }
+        }
+    }
+
+    calcDistance(obj1, obj2) {
+        let dx = obj2.x - obj1.x;
+        let dy = obj2.y - obj1.y;
+        return [Math.sqrt(dx * dx + dy * dy), dx, dy];
+    }
+}
+const enemy = new Enemy(100, 100, 100, 0.5, 15, 1)

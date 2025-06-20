@@ -97,10 +97,14 @@
 }
 
 .crystal-void {
-    background: linear-gradient(45deg, #141e30, #243b55);
+    background: linear-gradient(45deg, #233353, #2e4d70);
     color: white;
 }
 
+.crystal-echo {
+    background: linear-gradient(45deg, #297285, #302ea3);
+    color: white;
+}
 /* Notification Animation */
 .game-notification {
     transition: opacity 0.3s ease-in-out;

@@ -187,7 +187,8 @@ export class InventorySystem {
                 if (item.type === 'echo_crystal') {
                     const itemElement = document.createElement('div');
                     itemElement.className = 'echo-crystal';
-                    itemElement.classList.add(`crystal-${item.element}`);
+                    // Add crystal-echo class if it's an echo crystal
+                    itemElement.classList.add(`crystal-${item.element.toLowerCase()}`);
                     itemElement.innerHTML = `
                         <div class="d-flex align-items-center flex-grow-1">
                             <i class="fas fa-gem me-2"></i>
