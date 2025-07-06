@@ -7,6 +7,23 @@ import http.client
 
 print("Started")
 
+def kill_processes_on_port(port=5000):
+    try:
+        # Get list of PIDs using the port
+        pids = subprocess.check_output(f"lsof -ti :{port}", shell=True).decode().strip().split('\n')
+        
+        for pid in pids:
+            if pid:  # avoid empty strings
+                print(f"Killing process {pid} on port {port}")
+                subprocess.run(['kill', '-9', pid])
+        print("Done.")
+    except subprocess.CalledProcessError:
+        print(f"No processes found on port {port}.")
+
+if __name__ == "__main__":
+    kill_processes_on_port(5000)
+
+
 # Step 1: Change to your game directory
 os.chdir('/Users/carolynbowers/Desktop/Shattered-Realms')
 
