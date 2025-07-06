@@ -2,9 +2,9 @@ import os
 import webbrowser
 import time
 import subprocess
-import socket
 import requests
 import sys
+
 print("Started")
 # Change the directory
 os.chdir('/Users/carolynbowers/Desktop/Shattered-Realms')
@@ -27,7 +27,6 @@ timeout = 30  # Timeout after 30 seconds if the server doesn't start
 while not check_server() and time.time() - start_time < timeout:
     time.sleep(0.1)
 
-# If the server hasn't started within the timeout, cancel the execution
 if time.time() - start_time >= timeout:
     print("Server failed to start within the timeout. Terminating Automator execution.")
     process.terminate()  # This will stop the Flask server
