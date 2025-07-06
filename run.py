@@ -4,7 +4,8 @@ import time
 import subprocess
 import sys
 import http.client
-
+import tkinter as tk
+from tkinter import filedialog
 print("Started")
 
 def kill_processes_on_port(port=5000):
@@ -23,9 +24,14 @@ def kill_processes_on_port(port=5000):
 if __name__ == "__main__":
     kill_processes_on_port(5000)
 
+with open('directory.txt', 'r') as file:
+    path = file.read()
+if not path: 
+    print("No path selected: go to directory.txt and add path of your Shattered-Realms folder")
+    exit()
 
 # Step 1: Change to your game directory
-os.chdir('/Users/carolynbowers/Desktop/Shattered-Realms')
+os.chdir(path)
 
 # Step 2: Start Flask server in background
 process = subprocess.Popen(['python3', 'main.py'])
