@@ -2,8 +2,8 @@ import os
 import webbrowser
 import time
 import subprocess
-import requests
 import sys
+import http.client
 
 print("Started")
 
@@ -16,8 +16,12 @@ process = subprocess.Popen(['python3', 'main.py'])
 # Step 3: Wait for Flask server to start
 def check_server(port=5000):
     try:
-        return requests.get('http://127.0.0.1:5000').status_code == 200
-    except requests.exceptions.RequestException:
+        conn = http.client.HTTPConnection("127.0.0.1", port, timeout=1)
+        conn.request("GET", "/")
+        response = conn.getresponse()
+        conn.close()
+        return response.status == 200
+    except Exception:
         return False
 
 start_time = time.time()
@@ -30,18 +34,20 @@ if time.time() - start_time >= timeout:
     process.terminate()
     sys.exit(1)
 
-# Step 4: Open in browser
-webbrowser.open_new_tab('http://127.0.0.1:5000')
+# Step 4: Open in browser (using macOS 'open' command for reliability)
+import subprocess
+subprocess.run(['open', 'http://127.0.0.1:5000'])
 
-# Step 5: Monitor server status
-try:
-    while True:
-        if not check_server():
-            print("Server stopped. Exiting.")
-            process.terminate()
-            sys.exit(0)
-        time.sleep(1)
-except KeyboardInterrupt:
-    print("Interrupted. Shutting down.")
-    process.terminate()
-    sys.exit(0)
+# Step 5: (Optional) Remove monitoring loop if not needed in Automator
+# Commenting it out so script ends here
+# try:
+#     while True:
+#         if not check_server():
+#             print("Server stopped. Exiting.")
+#             process.terminate()
+#             sys.exit(0)
+#         time.sleep(1)
+# except KeyboardInterrupt:
+#     print("Interrupted. Shutting down.")
+#     process.terminate()
+#     sys.exit(0)
