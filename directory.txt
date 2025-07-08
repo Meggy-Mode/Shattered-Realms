@@ -1,1 +1,5 @@
-/Users/carolynbowers/Desktop/Shattered-Realms
+-change this line to Shattered-Realms folder path--- MacOS 
+-change this line to Shattered-Realms folder path--- Windows
+
+1st line is parsed ONLY for MacOS the 2nd line is parsed ONLY for Windows
+Make sure they are in their respective lines
