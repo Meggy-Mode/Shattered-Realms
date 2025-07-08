@@ -27,17 +27,21 @@ def kill_processes_on_port(port=5000):
 if __name__ == "__main__":
     kill_processes_on_port(5000)
 
-with open('directory.txt', 'r') as file:
-    lines = file.readlines()
-    if os.name == 'nt':
-        path = lines[0].strip() if len(lines) > 0 else ''
-        line = lines[2].strip() if len(lines) > 2 else ''
-    elif os.name == 'posix':
-        path = lines[0].strip() if len(lines) > 0 else ''
-        line = lines[1].strip() if len(lines) > 1 else ''
+try:
+    with open('directory.txt', 'r') as file:
+        lines = file.readlines()
+        if os.name == 'nt':
+            path = lines[0].strip() if len(lines) > 0 else ''
+            line = lines[2].strip() if len(lines) > 2 else ''
+        elif os.name == 'posix':
+            path = lines[0].strip() if len(lines) > 0 else ''
+            line = lines[1].strip() if len(lines) > 1 else ''
+except:
+    print("Please ether add a file path in directory.txt, or the file is nonexistent")
+    print("If this error keeps persisting please report an error at the GitHub repository")
+
 
 if not path: 
-    print("No path selected: go to directory.txt and add path of your Shattered-Realms folder")
     exit()
 
 # Step 1: Change to your game directory
