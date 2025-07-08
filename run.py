@@ -39,7 +39,7 @@ try:
 
     os.chdir(path)
 except:
-    print("Please ether add a file path in directory.txt, or the file is nonexistent")
+    print("Please either add a file path in directory.txt, or the file is nonexistent")
     print("If this error keeps persisting please report an error at the GitHub repository")
     exit()
 
