@@ -69,5 +69,4 @@ if time.time() - start_time >= timeout:
     process.terminate()
     sys.exit(1)
 
-import subprocess
 subprocess.run(['open', 'http://127.0.0.1:5000'])
