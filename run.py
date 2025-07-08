@@ -6,6 +6,9 @@ import sys
 import http.client
 import tkinter as tk
 from tkinter import filedialog
+import platform
+from itertools import islice
+print(f"current os: {os.name}")
 print("Started")
 
 def kill_processes_on_port(port=5000):
@@ -25,7 +28,14 @@ if __name__ == "__main__":
     kill_processes_on_port(5000)
 
 with open('directory.txt', 'r') as file:
-    path = file.read()
+    lines = file.readlines()
+    if os.name == 'nt':
+        path = lines[0].strip() if len(lines) > 0 else ''
+        line = lines[2].strip() if len(lines) > 2 else ''
+    elif os.name == 'posix':
+        path = lines[0].strip() if len(lines) > 0 else ''
+        line = lines[1].strip() if len(lines) > 1 else ''
+
 if not path: 
     print("No path selected: go to directory.txt and add path of your Shattered-Realms folder")
     exit()
