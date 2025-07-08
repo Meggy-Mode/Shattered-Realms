@@ -36,21 +36,19 @@ try:
         elif os.name == 'posix':
             path = lines[0].strip() if len(lines) > 0 else ''
             line = lines[1].strip() if len(lines) > 1 else ''
+
+    os.chdir(path)
 except:
     print("Please ether add a file path in directory.txt, or the file is nonexistent")
     print("If this error keeps persisting please report an error at the GitHub repository")
-
+    exit()
 
 if not path: 
     exit()
 
-# Step 1: Change to your game directory
-os.chdir(path)
 
-# Step 2: Start Flask server in background
 process = subprocess.Popen(['python3', 'main.py'])
 
-# Step 3: Wait for Flask server to start
 def check_server(port=5000):
     try:
         conn = http.client.HTTPConnection("127.0.0.1", port, timeout=1)
@@ -71,20 +69,5 @@ if time.time() - start_time >= timeout:
     process.terminate()
     sys.exit(1)
 
-# Step 4: Open in browser (using macOS 'open' command for reliability)
 import subprocess
 subprocess.run(['open', 'http://127.0.0.1:5000'])
-
-# Step 5: (Optional) Remove monitoring loop if not needed in Automator
-# Commenting it out so script ends here
-# try:
-#     while True:
-#         if not check_server():
-#             print("Server stopped. Exiting.")
-#             process.terminate()
-#             sys.exit(0)
-#         time.sleep(1)
-# except KeyboardInterrupt:
-#     print("Interrupted. Shutting down.")
-#     process.terminate()
-#     sys.exit(0)
