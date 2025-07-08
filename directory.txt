@@ -3,3 +3,4 @@
 
 1st line is parsed ONLY for MacOS the 2nd line is parsed ONLY for Windows
 Make sure they are in their respective lines
+MAKE SURE YOU HAVE THE FOLDER NAME IN THE FILE PATH
