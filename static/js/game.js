@@ -4,6 +4,7 @@ if (!ctx) {
     console.error("Canvas context could not be initialized.");
 } else { console.log("initialized canvas") }
 
+let area = "spawn"
 
 
 class CrystalManager {
@@ -591,7 +592,12 @@ class Game {
     }
     async loadIslands() {
         try {
-            const response = await fetch('/static/data/islands.json');
+            let response;
+            if(area === "spawn"){
+                response = await fetch('/static/data/spawn.json')
+            } else {
+                response = await fetch('/static/data/islands.json');
+            }
             if (!response.ok) {
                 throw new Error('Failed to load islands data');
             }
@@ -601,7 +607,8 @@ class Game {
                 x: island.x + canvas.width / 2,
                 y: island.y + canvas.height / 2,
                 texture: island.texture || 'default',
-                passThrough: island.passThrough || false
+                passThrough: island.passThrough || false,
+                borders: {top: true, right: true, bottom: true, left: true}
             }));
         } catch (error) {
             console.error('Error loading islands:', error);
@@ -695,11 +702,43 @@ class Game {
                 ctx.strokeStyle = '#90aa90';
             }
 
-            // Draw the island
-            ctx.fillRect(screenX, screenY, island.width, island.height);
-            ctx.lineWidth = 2;
-            ctx.strokeRect(screenX, screenY, island.width, island.height);
+ctx.lineWidth = 3;
+
+if (island.borders.top) {
+    ctx.beginPath();
+    ctx.moveTo(screenX, screenY);
+    ctx.lineTo(screenX + island.width, screenY);
+    ctx.stroke();
+    ctx.closePath();
+}
+if (island.borders.right) {
+    ctx.beginPath();
+    ctx.moveTo(screenX + island.width, screenY);
+    ctx.lineTo(screenX + island.width, screenY + island.height);
+    ctx.stroke();
+    ctx.closePath();
+}
+if (island.borders.bottom) {
+    ctx.beginPath();
+    ctx.moveTo(screenX, screenY + island.height);
+    ctx.lineTo(screenX + island.width, screenY + island.height);
+    ctx.stroke();
+    ctx.closePath();
+}
+if (island.borders.left) {
+    ctx.beginPath();
+    ctx.moveTo(screenX, screenY);
+    ctx.lineTo(screenX, screenY + island.height);
+    ctx.stroke();
+    ctx.closePath();
+}
+
+            ctx.fillRect((screenX + (ctx.lineWidth / 2)) - 1, screenY + (ctx.lineWidth / 2), 2 + (island.width - ctx.lineWidth), 1 + (island.height - ctx.lineWidth));
+
+
+
             //console.log("Drawing islands:", this.islands.length);
+
         });
     }
 

@@ -1,3 +1,5 @@
+/Users/carolynbowers/Desktop/Shattered-Realms
+
 -change this line to Shattered-Realms folder path--- MacOS 
 -change this line to Shattered-Realms folder path--- Windows
 

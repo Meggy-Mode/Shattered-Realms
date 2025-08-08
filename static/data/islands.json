@@ -6,6 +6,12 @@
       "width": 400,
       "height": 80,
       "type": "grass",
+      "borders": {
+        "top": true,
+        "right": true,
+        "bottom": true,
+        "left": true
+      },
       "texture": "default",
       "passThrough": false,
       "description": "Main starting island"
@@ -16,6 +22,12 @@
       "width": 40,
       "height": 40,
       "type": "bench",
+      "borders": {
+        "top": true,
+        "right": true,
+        "bottom": true,
+        "left": true
+      },
       "texture": "default",
       "passThrough": false,
       "description": "Main starting island"
@@ -26,6 +38,12 @@
       "width": 250,
       "height": 60,
       "type": "stone",
+      "borders": {
+        "top": true,
+        "right": true,
+        "bottom": true,
+        "left": true
+      },
       "texture": "default",
       "passThrough": false,
       "description": "Left floating island"
@@ -36,6 +54,12 @@
       "width": 300,
       "height": 70,
       "type": "grass",
+      "borders": {
+        "top": true,
+        "right": true,
+        "bottom": true,
+        "left": true
+      },
       "texture": "default",
       "passThrough": true,
       "description": "Right upper grass island"
@@ -46,6 +70,12 @@
       "width": 180,
       "height": 50,
       "type": "crystal",
+      "borders": {
+        "top": true,
+        "right": true,
+        "bottom": true,
+        "left": true
+      },
       "texture": "default",
       "passThrough": false,
       "description": "Upper crystal platform"
@@ -56,6 +86,12 @@
       "width": 220,
       "height": 55,
       "type": "stone",
+      "borders": {
+        "top": true,
+        "right": true,
+        "bottom": true,
+        "left": true
+      },
       "texture": "default",
       "passThrough": false,
       "description": "Highest stone platform"
@@ -66,6 +102,12 @@
       "width": 150,
       "height": 45,
       "type": "grass",
+      "borders": {
+        "top": true,
+        "right": true,
+        "bottom": true,
+        "left": true
+      },
       "texture": "default",
       "passThrough": false,
       "description": "Lower left grass island"
@@ -76,6 +118,12 @@
       "width": 280,
       "height": 65,
       "type": "crystal",
+      "borders": {
+        "top": true,
+        "right": true,
+        "bottom": true,
+        "left": true
+      },
       "texture": "default",
       "passThrough": false,
       "description": "Lower right crystal island"
